@@ -1,44 +1,24 @@
-- 風格方向
-  - 氛圍：現代、清爽、專業、可信、低噪點、可讀性優先
-  - 對比與層級：中高對比、階層清晰、背景克制
-  - 內容密度：中等密度（資料密集頁可提供緊湊模式）
-  - 形狀與立體感：中性圓角、少量陰影僅用於層級強調
-  - 視覺元素：幾何插圖/簡潔圖示為主，避免重照片風
-  - 動效：輕量、快速、避免分散注意；尊重使用者的減少動態偏好
+Surtopya UI 生成提示（僅列頁面與整體風格）
 
-- 導航與資訊架構
-  - 全域導覽：Logo、Marketplace、Create、Dashboard、Rewards、Help、Search、Avatar Menu
-  - 次導覽：Breadcrumb + Tabs（Overview/Reports/Settings）
+整體風格
+- 現代、專業、可信；極簡幾何、適度留白；微圓角，陰影僅作層級強調。
+- 高可讀性，資訊密度中等；桌機/平板/手機響應式，支援 PWA。
+- 品質治理導向：清楚呈現品質量表、有效完成率、T10/T100；不強調反作弊。
+- 無障礙：鍵盤可達、焦點可見、對比達 AA、觸控尺寸足。
 
-- 頁面清單
-  - `/auth/*` 登入/註冊/Onboarding
-  - `/` 首頁/著陸（價值主張、快速入口）
-  - `/creator` 問卷主控制台（我的問卷、草稿、曝光狀態）
-  - `/creator/editor/:id` 問卷編輯器（拖拉、跳題、預覽、發布）
-  - `/creator/publish/:id` 發布與曝光設定（驗證強度、預估時間、獎勵）
-  - `/marketplace` 市集清單（篩選/排序/付費標記/品質徽章）
-  - `/marketplace/:id` 問卷詳情（題數、時間、驗證、評分、獎勵）
-  - `/respond/:id` 填答流程（進度、注意力測驗、暫存/恢復）
-  - `/respond/:id/done` 完成頁（個人化小報告、分享、再填誘因）
-  - `/reports/:id` 報表/匯出（基本統計、下載）
-  - `/boost/:id` Boost/付款（置頂、加速、定價）
-  - `/rewards` 點數/獎勵中心（餘額、兌換、抽獎）
-  - `/admin` 管理後台（反作弊、申訴、審核、告警）
-  - `/help` 幫助中心、`/legal/*` 法務、`404/500` 錯誤頁
-
-- 元件庫（列型態，不定義外觀數值）
-  - 佈局：Header、Sidebar、PageHeader、Toolbar、Breadcrumb、Tabs
-  - 資訊：Card、Statistic、Progress、Rating、Tag/Badge、Tooltip
-  - 資料：Table、List、Pagination、Filter Chip（含排序/篩選/分頁/欄控制）
-  - 表單：Input、Select、Checkbox、Radio、Switch、Slider、Textarea、Combobox、Uploader
-  - 互動：Button、IconButton、Dropdown、Segmented、DateRangePicker、Modal、Drawer、Toast、InlineAlert、Skeleton、Empty、Loading Bar
-  - 專用：SurveyCard、QualityBadge、VerificationBadge、MarketplaceSortHint、AttentionCheckNotice
-
-- 可及性與互動狀態（原則層級）
-  - 可及性：操作可達、焦點可見、充分對比；觸控目標具足夠尺寸；支援一般輔助工具
-  - 狀態：loading/empty/error/success/disabled/skeleton 覆蓋所有關鍵元件與頁面
-  - 表單：即時驗證 + 提交摘要；錯誤訊息具體且可行動
-
-- 追蹤與透明度（原則層級）
-  - 排序透明：自然分數（互助/品質/新鮮度）與付費分數（置頂/加速）需有解釋與上限
-  - 事件：市集曝光/點擊/篩選、編輯器存檔/發布/錯誤、填答開始/完成/放棄、報表下載
+需要頁面
+- `/` 首頁（價值主張、案例、CTA）
+- `/auth/*` 登入／註冊／Onboarding
+- `/creator` 問卷主控台
+- `/creator/editor/:id` 問卷編輯
+- `/creator/publish/:id` 上架設定（目標、預算、品質等級、T10/T100 預估）
+- `/marketplace` 市場清單
+- `/marketplace/:id` 問卷詳情
+- `/respond/:id` 填答流程
+- `/respond/:id/done` 完成頁
+- `/reports/:id` 報表與匯出
+- `/boost/:id` 置頂/加速
+- `/rewards` 點數/獎勵
+- `/admin` 後台
+- `/help`、`/legal/*`、`/status`
+- `/404`、`/500`
