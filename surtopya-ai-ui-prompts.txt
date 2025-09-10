@@ -1,4 +1,4 @@
-Surtopya UI 生成提示（僅列頁面與整體風格）
+Surtopya 問卷平台
 
 整體風格
 - 現代、專業、可信；極簡幾何、適度留白；微圓角，陰影僅作層級強調。
@@ -12,12 +12,12 @@ Surtopya UI 生成提示（僅列頁面與整體風格）
 - `/creator` 問卷主控台
 - `/creator/editor/:id` 問卷編輯
 - `/creator/publish/:id` 上架設定（目標、預算、品質等級、T10/T100 預估）
-- `/marketplace` 市場清單
-- `/marketplace/:id` 問卷詳情
+- `/explore` 探索清單
+- `/explore/:id` 問卷詳情
 - `/respond/:id` 填答流程
 - `/respond/:id/done` 完成頁
 - `/reports/:id` 報表與匯出
-- `/boost/:id` 置頂/加速
+- `/boost/:id` 曝光升級（創建者端）
 - `/rewards` 點數/獎勵
 - `/admin` 後台
 - `/help`、`/legal/*`、`/status`
