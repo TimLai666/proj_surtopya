@@ -7,6 +7,14 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -42,6 +50,19 @@ const MOCK_SURVEY = {
       type: "rating",
       title: "Rate your last online shopping experience",
       required: true,
+    },
+    {
+      id: "q5",
+      type: "select",
+      title: "What is your age group?",
+      required: true,
+      options: ["18-24", "25-34", "35-44", "45-54", "55+"],
+    },
+    {
+      id: "q6",
+      type: "date",
+      title: "When did you last make an online purchase?",
+      required: false,
     },
   ],
 };
@@ -158,6 +179,33 @@ export default function SurveyPage() {
                   </button>
                 ))}
               </div>
+            )}
+
+            {currentQuestion.type === "select" && (
+              <Select
+                value={answers[currentQuestion.id]}
+                onValueChange={(value) => handleAnswer(value)}
+              >
+                <SelectTrigger className="w-full h-12 text-base">
+                  <SelectValue placeholder="Select an option" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currentQuestion.options?.map((option) => (
+                    <SelectItem key={option} value={option} className="text-base py-3">
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {currentQuestion.type === "date" && (
+              <Input
+                type="date"
+                className="w-full h-12 text-base block"
+                value={answers[currentQuestion.id] || ""}
+                onChange={(e) => handleAnswer(e.target.value)}
+              />
             )}
           </CardContent>
 

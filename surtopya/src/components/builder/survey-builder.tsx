@@ -19,6 +19,19 @@ export function SurveyBuilder() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<any>(null); // Track active item data
   const [title, setTitle] = useState("Untitled Survey");
+  const [isDirty, setIsDirty] = useState(false);
+
+  // Warn on exit if unsaved
+  React.useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -115,9 +128,11 @@ export function SurveyBuilder() {
           const newItems = [...questions];
           newItems[placeholderIndex] = newQuestion;
           setQuestions(newItems);
+          setIsDirty(true);
       } else {
           // Fallback if no placeholder (e.g. dropped directly on empty canvas without dragover firing enough)
           setQuestions([...cleanQuestions, newQuestion]);
+          setIsDirty(true);
       }
     } 
     // Reordering existing items
@@ -127,6 +142,7 @@ export function SurveyBuilder() {
         const newIndex = items.findIndex((item) => item.id === over.id);
         return arrayMove(items, oldIndex, newIndex);
       });
+      setIsDirty(true);
     } else {
         // If dropped on self or no change, just ensure placeholder is gone
         setQuestions(cleanQuestions);
@@ -138,10 +154,12 @@ export function SurveyBuilder() {
 
   const updateQuestion = (id: string, updates: Partial<Question>) => {
     setQuestions(questions.map(q => q.id === id ? { ...q, ...updates } : q));
+    setIsDirty(true);
   };
 
   const deleteQuestion = (id: string) => {
     setQuestions(questions.filter(q => q.id !== id));
+    setIsDirty(true);
   };
 
   return (
@@ -160,7 +178,7 @@ export function SurveyBuilder() {
             <Eye className="mr-2 h-4 w-4" />
             Preview
           </Button>
-          <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white">
+          <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => setIsDirty(false)}>
             <Save className="mr-2 h-4 w-4" />
             Save Survey
           </Button>
@@ -196,10 +214,10 @@ export function SurveyBuilder() {
           </main>
         </div>
         
-        <DragOverlay>
+        <DragOverlay dropAnimation={null}>
           {activeId ? (
              activeItem?.isToolboxItem ? (
-                <div className="w-[600px] opacity-80">
+                <div className="w-[600px] opacity-60"> {/* Translucent preview */}
                     {/* Preview of what it looks like */}
                      <div className="bg-white border border-purple-500 shadow-xl rounded-lg p-4">
                         <div className="h-4 w-1/3 bg-gray-200 rounded mb-4"></div>

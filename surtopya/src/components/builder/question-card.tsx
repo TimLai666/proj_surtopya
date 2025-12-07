@@ -71,11 +71,11 @@ export function QuestionCard({ question, onUpdate, onDelete }: QuestionCardProps
 
           {/* Question Body based on Type */}
           <div className="pl-2">
-            {(question.type === 'single' || question.type === 'multi') && (
+            {(question.type === 'single' || question.type === 'multi' || question.type === 'select') && (
               <div className="space-y-2">
                 {question.options?.map((option, index) => (
                   <div key={index} className="flex items-center gap-2">
-                    <div className={`h-4 w-4 rounded-full border border-gray-300 ${question.type === 'multi' ? 'rounded-sm' : ''}`} />
+                    <div className={`h-4 w-4 border border-gray-300 ${question.type === 'multi' ? 'rounded-sm' : 'rounded-full'}`} />
                     <Input 
                       value={option} 
                       onChange={(e) => handleOptionChange(index, e.target.value)}
@@ -94,6 +94,10 @@ export function QuestionCard({ question, onUpdate, onDelete }: QuestionCardProps
 
             {question.type === 'text' && (
               <Input disabled placeholder="Long answer text..." className="bg-gray-50 border-dashed" />
+            )}
+
+            {question.type === 'date' && (
+              <Input disabled type="date" className="bg-gray-50 border-dashed w-auto" />
             )}
 
             {question.type === 'rating' && (

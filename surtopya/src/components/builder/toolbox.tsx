@@ -1,6 +1,5 @@
-import React from "react";
 import { useDraggable } from "@dnd-kit/core";
-import { Type, ListChecks, CheckSquare, Star } from "lucide-react";
+import { Type, ListChecks, CheckSquare, Star, Calendar, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuestionType } from "@/types/survey";
 
@@ -11,7 +10,7 @@ interface ToolboxItemProps {
 }
 
 function ToolboxItem({ type, label, icon }: ToolboxItemProps) {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `toolbox-${type}`,
     data: {
       isToolboxItem: true,
@@ -21,6 +20,7 @@ function ToolboxItem({ type, label, icon }: ToolboxItemProps) {
 
   const style = transform ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    opacity: 0, // Hide original when dragging
   } : undefined;
 
   return (
@@ -40,6 +40,8 @@ export function Toolbox() {
       <ToolboxItem type="multi" label="Multiple Choice" icon={<CheckSquare className="h-4 w-4" />} />
       <ToolboxItem type="text" label="Text Answer" icon={<Type className="h-4 w-4" />} />
       <ToolboxItem type="rating" label="Rating Scale" icon={<Star className="h-4 w-4" />} />
+      <ToolboxItem type="select" label="Dropdown" icon={<ChevronDown className="h-4 w-4" />} />
+      <ToolboxItem type="date" label="Date" icon={<Calendar className="h-4 w-4" />} />
     </div>
   );
 }
