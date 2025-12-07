@@ -17,6 +17,7 @@ const generateId = () => Math.random().toString(36).substr(2, 9);
 export function SurveyBuilder() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeItem, setActiveItem] = useState<any>(null); // Track active item data
   const [title, setTitle] = useState("Untitled Survey");
 
   const sensors = useSensors(
@@ -29,13 +30,70 @@ export function SurveyBuilder() {
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
+    setActiveItem(event.active.data.current);
+  };
+
+  const handleDragOver = (event: any) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    // If dragging a toolbox item over the canvas
+    if (active.data.current?.isToolboxItem) {
+      const isOverCanvas = over.id === 'canvas-droppable' || questions.some(q => q.id === over.id);
+      
+      if (isOverCanvas) {
+        // Check if we already have a placeholder
+        const hasPlaceholder = questions.some(q => q.id === 'placeholder');
+        
+        if (!hasPlaceholder) {
+          const type = active.data.current.type as QuestionType;
+          const placeholder: Question = {
+            id: 'placeholder',
+            type,
+            title: "New Question",
+            required: false,
+            points: 10,
+            options: type === 'single' || type === 'multi' ? ['Option 1', 'Option 2'] : undefined,
+          };
+
+          setQuestions(items => {
+            // Insert at the hover position or end
+            const overIndex = items.findIndex(item => item.id === over.id);
+            const newItems = [...items];
+            
+            if (overIndex !== -1) {
+              newItems.splice(overIndex, 0, placeholder);
+            } else {
+              newItems.push(placeholder);
+            }
+            return newItems;
+          });
+        } else {
+            // Move placeholder if needed
+            setQuestions(items => {
+                const activeIndex = items.findIndex(i => i.id === 'placeholder');
+                const overIndex = items.findIndex(i => i.id === over.id);
+                
+                if (overIndex !== -1 && activeIndex !== overIndex) {
+                    return arrayMove(items, activeIndex, overIndex);
+                }
+                return items;
+            });
+        }
+      }
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
+    // Remove placeholder if it exists (we will replace it with real item or just remove it)
+    const cleanQuestions = questions.filter(q => q.id !== 'placeholder');
+
     if (!over) {
       setActiveId(null);
+      setActiveItem(null);
+      setQuestions(cleanQuestions);
       return;
     }
 
@@ -50,7 +108,17 @@ export function SurveyBuilder() {
         points: 10,
         options: type === 'single' || type === 'multi' ? ['Option 1', 'Option 2'] : undefined,
       };
-      setQuestions([...questions, newQuestion]);
+
+      // Replace placeholder with real question
+      const placeholderIndex = questions.findIndex(q => q.id === 'placeholder');
+      if (placeholderIndex !== -1) {
+          const newItems = [...questions];
+          newItems[placeholderIndex] = newQuestion;
+          setQuestions(newItems);
+      } else {
+          // Fallback if no placeholder (e.g. dropped directly on empty canvas without dragover firing enough)
+          setQuestions([...cleanQuestions, newQuestion]);
+      }
     } 
     // Reordering existing items
     else if (active.id !== over.id) {
@@ -59,9 +127,13 @@ export function SurveyBuilder() {
         const newIndex = items.findIndex((item) => item.id === over.id);
         return arrayMove(items, oldIndex, newIndex);
       });
+    } else {
+        // If dropped on self or no change, just ensure placeholder is gone
+        setQuestions(cleanQuestions);
     }
 
     setActiveId(null);
+    setActiveItem(null);
   };
 
   const updateQuestion = (id: string, updates: Partial<Question>) => {
@@ -100,6 +172,7 @@ export function SurveyBuilder() {
         sensors={sensors} 
         collisionDetection={closestCenter} 
         onDragStart={handleDragStart} 
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
         <div className="flex flex-1 overflow-hidden">
@@ -125,9 +198,22 @@ export function SurveyBuilder() {
         
         <DragOverlay>
           {activeId ? (
-             <div className="p-4 bg-white border border-purple-500 shadow-xl rounded-lg opacity-80 cursor-grabbing">
-               Dragging Item...
-             </div>
+             activeItem?.isToolboxItem ? (
+                <div className="w-[600px] opacity-80">
+                    {/* Preview of what it looks like */}
+                     <div className="bg-white border border-purple-500 shadow-xl rounded-lg p-4">
+                        <div className="h-4 w-1/3 bg-gray-200 rounded mb-4"></div>
+                        <div className="space-y-2">
+                            <div className="h-8 w-full bg-gray-100 rounded border border-gray-200"></div>
+                            <div className="h-8 w-full bg-gray-100 rounded border border-gray-200"></div>
+                        </div>
+                     </div>
+                </div>
+             ) : (
+                 <div className="p-4 bg-white border border-purple-500 shadow-xl rounded-lg opacity-80 cursor-grabbing">
+                   Dragging Question...
+                 </div>
+             )
           ) : null}
         </DragOverlay>
       </DndContext>
