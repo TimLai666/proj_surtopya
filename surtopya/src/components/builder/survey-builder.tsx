@@ -31,6 +31,11 @@ export function SurveyBuilder() {
   });
   const [logicEditorOpen, setLogicEditorOpen] = useState(false);
   const [activeLogicQuestionId, setActiveLogicQuestionId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Warn on exit if unsaved
   React.useEffect(() => {
@@ -203,6 +208,8 @@ export function SurveyBuilder() {
     }
   };
 
+  if (!mounted) return null;
+
   return (
     <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-950">
       {/* Header */}
@@ -284,7 +291,7 @@ export function SurveyBuilder() {
           </main>
         </div>
         
-        {activeLogicQuestionId && (
+        {activeLogicQuestionId && questions.find(q => q.id === activeLogicQuestionId) && (
             <LogicEditor 
                 question={questions.find(q => q.id === activeLogicQuestionId)!}
                 allQuestions={questions}
