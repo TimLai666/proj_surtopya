@@ -1,4 +1,4 @@
-export type QuestionType = 'single' | 'multi' | 'text' | 'rating' | 'date' | 'select' | 'section';
+export type QuestionType = 'single' | 'multi' | 'text' | 'short' | 'long' | 'rating' | 'date' | 'select' | 'section';
 
 export interface LogicRule {
     triggerOption: string;

@@ -102,7 +102,7 @@ export function SurveyBuilder() {
             title: "New Question",
             required: false,
             points: 10,
-            options: type === 'single' || type === 'multi' ? ['Option 1', 'Option 2'] : undefined,
+            options: type === 'single' || type === 'multi' || type === 'select' ? ['Option 1', 'Option 2'] : undefined,
           };
 
           setQuestions(items => {
@@ -170,7 +170,7 @@ export function SurveyBuilder() {
         title: "New Question",
         required: false,
         points: 10,
-        options: type === 'single' || type === 'multi' ? ['Option 1', 'Option 2'] : undefined,
+        options: type === 'single' || type === 'multi' || type === 'select' ? ['Option 1', 'Option 2'] : undefined,
       };
 
       // Replace placeholder with real question
@@ -370,6 +370,25 @@ export function SurveyBuilder() {
     setIsDirty(true);
   };
 
+  const openPreview = () => {
+    // Save survey data to sessionStorage for the preview page
+    const surveyData = {
+      id: 'preview',
+      title,
+      description: '',
+      questions,
+      settings: {
+        isPublic: true,
+        pointsReward: 0,
+      }
+    };
+    sessionStorage.setItem('preview_survey', JSON.stringify(surveyData));
+    sessionStorage.setItem('preview_theme', JSON.stringify(theme));
+    
+    // Open preview in new tab
+    window.open('/survey/preview', '_blank');
+  };
+
   if (!mounted) return null;
 
   return (
@@ -393,7 +412,7 @@ export function SurveyBuilder() {
             <Palette className="mr-2 h-4 w-4" />
             Theme
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={openPreview}>
             <Eye className="mr-2 h-4 w-4" />
             Preview
           </Button>

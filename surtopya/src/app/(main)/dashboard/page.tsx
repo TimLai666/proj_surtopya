@@ -7,28 +7,40 @@ import Link from "next/link";
 // Mock Data for Dashboard
 const MY_SURVEYS = [
   {
-    id: "101",
-    title: "Product Feedback 2024",
-    description: "Gathering feedback on the latest release.",
-    points: 50,
+    id: "my-1",
+    title: "Customer Satisfaction Survey",
+    description: "Gathering feedback from our customers about their experience.",
+    points: 25,
     duration: 5,
-    responses: 45,
-    rating: 4.2,
+    responses: 156,
+    rating: 4.5,
     author: { name: "You", image: "" },
-    tags: ["Product"],
+    tags: ["Feedback"],
     isHot: false,
   },
   {
-    id: "102",
-    title: "Employee Satisfaction",
-    description: "Internal survey for Q4.",
-    points: 0,
+    id: "my-2",
+    title: "Employee Engagement Survey",
+    description: "Annual survey to measure employee engagement and satisfaction.",
+    points: 50,
     duration: 10,
-    responses: 12,
-    rating: 0,
+    responses: 89,
+    rating: 4.2,
     author: { name: "You", image: "" },
     tags: ["HR"],
     isHot: false,
+  },
+  {
+    id: "my-3",
+    title: "Product Feature Request",
+    description: "Help us prioritize new features for the next release.",
+    points: 30,
+    duration: 3,
+    responses: 245,
+    rating: 4.8,
+    author: { name: "You", image: "" },
+    tags: ["Product"],
+    isHot: true,
   },
 ];
 
@@ -92,7 +104,7 @@ export default function DashboardPage() {
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">My Surveys</h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {MY_SURVEYS.map((survey) => (
-              <SurveyCard key={survey.id} {...survey} />
+              <SurveyCard key={survey.id} {...survey} variant="dashboard" />
             ))}
             
             {/* Create New Card Placeholder */}
