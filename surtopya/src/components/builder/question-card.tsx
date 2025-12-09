@@ -16,9 +16,11 @@ interface QuestionCardProps {
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
   onOpenLogic: (id: string) => void;
+  isHidden?: boolean;
+  isOverlay?: boolean;
 }
 
-export function QuestionCard({ question, isFirstSection, onUpdate, onDelete, onDuplicate, onOpenLogic }: QuestionCardProps) {
+export function QuestionCard({ question, isFirstSection, onUpdate, onDelete, onDuplicate, onOpenLogic, isHidden, isOverlay }: QuestionCardProps) {
   const {
     attributes,
     listeners,
@@ -56,10 +58,10 @@ export function QuestionCard({ question, isFirstSection, onUpdate, onDelete, onD
     <div 
       ref={setNodeRef} 
       style={style} 
-      className="relative group mb-6"
+      className={`relative group mb-6 ${isHidden ? 'hidden' : ''}`}
     >
       <Card className={`transition-all duration-200 ${
-            isDragging ? 'shadow-2xl ring-2 ring-purple-500 rotate-2 opacity-80' : 'hover:shadow-md'
+            isDragging || isOverlay ? 'shadow-2xl ring-2 ring-purple-500 rotate-2 opacity-80' : 'hover:shadow-md'
         } ${
             question.type === 'section' 
                 ? 'bg-[var(--primary)] text-white border-none' 

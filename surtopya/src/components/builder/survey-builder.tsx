@@ -14,6 +14,7 @@ import { nanoid } from "nanoid";
 import { ThemeEditor } from "./theme-editor";
 import { LogicEditor } from "./logic-editor";
 import { SurveyTheme, LogicRule } from "@/types/survey";
+import { QuestionCard } from "./question-card";
 import {
   Dialog,
   DialogContent,
@@ -303,7 +304,25 @@ export function SurveyBuilder() {
 
   const confirmDelete = () => {
     if (deletingQuestionId) {
-        setQuestions(questions.filter(q => q.id !== deletingQuestionId));
+        // Check if it's a section
+        const questionToDelete = questions.find(q => q.id === deletingQuestionId);
+        
+        if (questionToDelete?.type === 'section') {
+            // Cascade delete: Delete section AND all questions until next section
+            const index = questions.findIndex(q => q.id === deletingQuestionId);
+            let endIndex = index;
+            for (let i = index + 1; i < questions.length; i++) {
+                if (questions[i].type === 'section') break;
+                endIndex = i;
+            }
+            
+            const newQuestions = questions.filter((_, i) => i < index || i > endIndex);
+            setQuestions(newQuestions);
+        } else {
+            // Normal delete
+            setQuestions(questions.filter(q => q.id !== deletingQuestionId));
+        }
+        
         setIsDirty(true);
         setDeletingQuestionId(null);
     }
@@ -435,6 +454,7 @@ export function SurveyBuilder() {
                   onDelete={deleteQuestion} 
                   onDuplicate={duplicateQuestion}
                   onOpenLogic={openLogicEditor}
+                  activeId={activeId}
                 />
               </SortableContext>
             </div>
@@ -480,8 +500,50 @@ export function SurveyBuilder() {
                      </div>
                 </div>
              ) : (
-                 <div className="p-4 bg-white border border-purple-500 shadow-xl rounded-lg opacity-80 cursor-grabbing">
-                   Dragging Question...
+                 <div className="w-[800px]"> {/* Fixed width for drag overlay to match canvas */}
+                    {activeItem.type === 'section' ? (
+                        <div className="flex flex-col">
+                            <QuestionCard 
+                                question={activeItem} 
+                                onUpdate={() => {}} 
+                                onDelete={() => {}} 
+                                onDuplicate={() => {}} 
+                                onOpenLogic={() => {}}
+                                isOverlay
+                            />
+                            {/* Render questions belonging to this section */}
+                            {(() => {
+                                const index = questions.findIndex(q => q.id === activeItem.id);
+                                if (index === -1) return null;
+                                const sectionQuestions = [];
+                                for (let i = index + 1; i < questions.length; i++) {
+                                    if (questions[i].type === 'section') break;
+                                    sectionQuestions.push(questions[i]);
+                                }
+                                return sectionQuestions.map((q, i) => (
+                                    <div key={q.id} className="mt-6">
+                                        <QuestionCard 
+                                            question={q} 
+                                            onUpdate={() => {}} 
+                                            onDelete={() => {}} 
+                                            onDuplicate={() => {}} 
+                                            onOpenLogic={() => {}}
+                                            isOverlay
+                                        />
+                                    </div>
+                                ));
+                            })()}
+                        </div>
+                    ) : (
+                        <QuestionCard 
+                            question={activeItem} 
+                            onUpdate={() => {}} 
+                            onDelete={() => {}} 
+                            onDuplicate={() => {}} 
+                            onOpenLogic={() => {}}
+                            isOverlay
+                        />
+                    )}
                  </div>
              )
           ) : null}
