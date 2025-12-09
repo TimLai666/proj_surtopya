@@ -10,11 +10,18 @@ export interface Question {
     points: number;
 }
 
+export interface SurveyTheme {
+    primaryColor: string;
+    backgroundColor: string;
+    fontFamily: string;
+}
+
 export interface Survey {
     id: string;
     title: string;
     description: string;
     questions: Question[];
+    theme?: SurveyTheme;
     settings: {
         isPublic: boolean;
         pointsReward: number;

@@ -7,9 +7,10 @@ interface CanvasProps {
   questions: Question[];
   onUpdate: (id: string, updates: Partial<Question>) => void;
   onDelete: (id: string) => void;
+  onDuplicate: (id: string) => void;
 }
 
-export function Canvas({ questions, onUpdate, onDelete }: CanvasProps) {
+export function Canvas({ questions, onUpdate, onDelete, onDuplicate }: CanvasProps) {
   const { setNodeRef } = useDroppable({
     id: 'canvas-droppable',
   });
@@ -31,6 +32,7 @@ export function Canvas({ questions, onUpdate, onDelete }: CanvasProps) {
           question={question} 
           onUpdate={onUpdate} 
           onDelete={onDelete} 
+          onDuplicate={onDuplicate}
         />
       ))}
     </div>

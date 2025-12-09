@@ -6,16 +6,17 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch"; // Need to install switch
-import { GripVertical, Trash2, Plus, X } from "lucide-react";
+import { GripVertical, Trash2, Plus, X, Copy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface QuestionCardProps {
   question: Question;
   onUpdate: (id: string, updates: Partial<Question>) => void;
   onDelete: (id: string) => void;
+  onDuplicate: (id: string) => void;
 }
 
-export function QuestionCard({ question, onUpdate, onDelete }: QuestionCardProps) {
+export function QuestionCard({ question, onUpdate, onDelete, onDuplicate }: QuestionCardProps) {
   const {
     attributes,
     listeners,
@@ -110,9 +111,14 @@ export function QuestionCard({ question, onUpdate, onDelete }: QuestionCardProps
           </div>
         </div>
 
-        <Button variant="ghost" size="icon" className="text-gray-400 hover:text-red-500 hover:bg-red-50" onClick={() => onDelete(question.id)}>
-          <Trash2 className="h-5 w-5" />
-        </Button>
+        <div className="flex flex-col gap-2">
+          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-purple-600 hover:bg-purple-50" onClick={() => onDuplicate(question.id)} title="Duplicate">
+            <Copy className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-red-500 hover:bg-red-50" onClick={() => onDelete(question.id)} title="Delete">
+            <Trash2 className="h-5 w-5" />
+          </Button>
+        </div>
       </CardHeader>
       
       <div className="border-t border-gray-100 bg-gray-50/50 p-2 px-4 flex justify-end gap-4 items-center text-xs text-gray-500">

@@ -8,8 +8,10 @@ import { Toolbox } from "./toolbox";
 import { Canvas } from "./canvas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Save, Eye } from "lucide-react";
+import { Save, Eye, Palette, Layout } from "lucide-react";
 import { nanoid } from "nanoid";
+import { ThemeEditor } from "./theme-editor";
+import { SurveyTheme } from "@/types/survey";
 
 // Simple ID generator if nanoid causes issues or for simplicity
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -20,6 +22,12 @@ export function SurveyBuilder() {
   const [activeItem, setActiveItem] = useState<any>(null); // Track active item data
   const [title, setTitle] = useState("Untitled Survey");
   const [isDirty, setIsDirty] = useState(false);
+  const [activeSidebar, setActiveSidebar] = useState<'toolbox' | 'theme'>('toolbox');
+  const [theme, setTheme] = useState<SurveyTheme>({
+    primaryColor: '#9333ea', // purple-600
+    backgroundColor: '#f9fafb', // gray-50
+    fontFamily: 'inter',
+  });
 
   // Warn on exit if unsaved
   React.useEffect(() => {
@@ -162,6 +170,24 @@ export function SurveyBuilder() {
     setIsDirty(true);
   };
 
+  const duplicateQuestion = (id: string) => {
+    const questionToDuplicate = questions.find(q => q.id === id);
+    if (!questionToDuplicate) return;
+
+    const newQuestion: Question = {
+      ...questionToDuplicate,
+      id: generateId(),
+      title: `${questionToDuplicate.title} (Copy)`,
+    };
+
+    const index = questions.findIndex(q => q.id === id);
+    const newQuestions = [...questions];
+    newQuestions.splice(index + 1, 0, newQuestion);
+    
+    setQuestions(newQuestions);
+    setIsDirty(true);
+  };
+
   return (
     <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-950">
       {/* Header */}
@@ -174,6 +200,10 @@ export function SurveyBuilder() {
           />
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setActiveSidebar(activeSidebar === 'theme' ? 'toolbox' : 'theme')}>
+            <Palette className="mr-2 h-4 w-4" />
+            Theme
+          </Button>
           <Button variant="outline" size="sm">
             <Eye className="mr-2 h-4 w-4" />
             Preview
@@ -194,20 +224,44 @@ export function SurveyBuilder() {
         onDragEnd={handleDragEnd}
       >
         <div className="flex flex-1 overflow-hidden">
-          {/* Toolbox Sidebar */}
-          <aside className="w-64 border-r border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-            <h2 className="mb-4 text-sm font-semibold text-gray-500 uppercase tracking-wider">Toolbox</h2>
-            <Toolbox />
+          {/* Sidebar */}
+          <aside className="w-64 border-r border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                    {activeSidebar === 'toolbox' ? 'Toolbox' : 'Theme'}
+                </h2>
+                {activeSidebar === 'theme' && (
+                    <Button variant="ghost" size="icon" onClick={() => setActiveSidebar('toolbox')} className="h-6 w-6">
+                        <Layout className="h-4 w-4" />
+                    </Button>
+                )}
+            </div>
+            
+            {activeSidebar === 'toolbox' ? (
+                <Toolbox />
+            ) : (
+                <ThemeEditor theme={theme} onUpdate={(updates) => {
+                    setTheme({ ...theme, ...updates });
+                    setIsDirty(true);
+                }} />
+            )}
           </aside>
 
           {/* Canvas */}
-          <main className="flex-1 overflow-y-auto p-8">
-            <div className="mx-auto max-w-3xl">
+          <main 
+            className="flex-1 overflow-y-auto p-8 transition-colors duration-200"
+            style={{ 
+                backgroundColor: theme.backgroundColor,
+                fontFamily: theme.fontFamily === 'serif' ? 'serif' : theme.fontFamily === 'mono' ? 'monospace' : theme.fontFamily === 'comic' ? '"Comic Sans MS", cursive, sans-serif' : 'inherit'
+            }}
+          >
+            <div className="mx-auto max-w-3xl" style={{ '--primary': theme.primaryColor } as React.CSSProperties}>
               <SortableContext items={questions.map(q => q.id)} strategy={verticalListSortingStrategy}>
                 <Canvas 
                   questions={questions} 
                   onUpdate={updateQuestion} 
                   onDelete={deleteQuestion} 
+                  onDuplicate={duplicateQuestion}
                 />
               </SortableContext>
             </div>
