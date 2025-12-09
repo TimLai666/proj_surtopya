@@ -30,7 +30,7 @@ export default function Home() {
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl leading-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
                   Unlock Insights with Surtopya
                 </h1>
                 <p className="mx-auto max-w-[700px] text-gray-400 md:text-xl">
@@ -41,7 +41,7 @@ export default function Home() {
                 <Button asChild className="bg-white text-black hover:bg-gray-200">
                   <Link href="/create">Get Started</Link>
                 </Button>
-                <Button variant="outline" asChild className="text-white border-white hover:bg-white hover:text-black">
+                <Button variant="outline" asChild className="border-white bg-transparent text-white hover:bg-white hover:text-black">
                   <Link href="/explore">Browse Surveys</Link>
                 </Button>
               </div>
