@@ -112,7 +112,7 @@ export default function SurveyManagementPage() {
   };
 
   const handleCopyLink = () => {
-    const link = `${window.location.origin}/survey/${surveyId}/intro`;
+    const link = `${window.location.origin}/survey/${surveyId}`;
     navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -258,7 +258,7 @@ export default function SurveyManagementPage() {
                     <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500">
                       <BarChart3 className="h-12 w-12 mb-4 text-gray-300" />
                       <p>Response analytics will appear here once you have responses.</p>
-                      <Button variant="outline" className="mt-4" onClick={() => router.push(`/survey/${surveyId}/intro`)}>
+                      <Button variant="outline" className="mt-4" onClick={() => router.push(`/survey/${surveyId}`)}>
                         <ExternalLink className="mr-2 h-4 w-4" />
                         View Survey
                       </Button>
@@ -312,7 +312,7 @@ export default function SurveyManagementPage() {
                 <div className="flex gap-2">
                   <Input 
                     readOnly 
-                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/survey/${surveyId}/intro`}
+                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/survey/${surveyId}`}
                     className="text-sm"
                   />
                   <Button variant="outline" size="icon" onClick={handleCopyLink}>
@@ -335,7 +335,7 @@ export default function SurveyManagementPage() {
                   <Pencil className="mr-2 h-4 w-4" />
                   Edit Survey
                 </Button>
-                <Button variant="outline" className="w-full justify-start" onClick={() => router.push(`/survey/${surveyId}/intro`)}>
+                <Button variant="outline" className="w-full justify-start" onClick={() => router.push(`/survey/${surveyId}`)}>
                   <ExternalLink className="mr-2 h-4 w-4" />
                   Open Survey Page
                 </Button>
