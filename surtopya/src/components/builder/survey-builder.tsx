@@ -228,26 +228,36 @@ export function SurveyBuilder() {
             const remainingItems = items.filter((_, index) => index < oldIndex || index > endIndex);
             
             // 2. Find where to insert in the remaining items
-            // We need to find the index of the 'over' item in the remaining array
-            // But 'over.id' might be in the remaining array OR it might be one of the items we just removed (if we dragged self?)
-            // Actually if active.id != over.id, over.id must be in remainingItems (unless we dragged a parent onto a child, which isn't possible here)
+            const overIndexInRemaining = remainingItems.findIndex(item => item.id === over.id);
+            if (overIndexInRemaining === -1) return items;
+
+            // Find the section that the 'over' item belongs to
+            let targetSectionStart = overIndexInRemaining;
+            // Scan backwards to find the section header
+            while (targetSectionStart >= 0 && remainingItems[targetSectionStart].type !== 'section') {
+                targetSectionStart--;
+            }
             
-            let insertIndex = remainingItems.findIndex(item => item.id === over.id);
+            // If we somehow didn't find a section (e.g. dropped before first section?), default to 0
+            if (targetSectionStart < 0) targetSectionStart = 0;
+
+            // Find the end of this target section
+            let targetSectionEnd = targetSectionStart;
+            while (targetSectionEnd + 1 < remainingItems.length && remainingItems[targetSectionEnd + 1].type !== 'section') {
+                targetSectionEnd++;
+            }
+
+            // Decide insertion point: Before target section or After target section?
+            // Use original indices to determine direction
+            let insertIndex = targetSectionStart;
             
-            // If dragging down (newIndex > oldIndex), we typically want to insert AFTER the target
-            // But standard dnd-kit behavior is "insert at position".
-            // If we drop onto a section, we want to swap order.
-            // If we drop onto a question, we split the page?
-            // Let's stick to: Insert BEFORE the target item.
-            
-            // Correction: If we are dragging DOWN, the user expects it to go AFTER the item they hover over (if using sortable strategy visually)
-            // But let's keep it simple: Insert at the index of the over item.
-            
-            if (insertIndex === -1) return items; // Should not happen
-            
-            // Enforce: Cannot insert before the first section (Page 1)
-            // Page 1 is always at index 0 of remainingItems (since we can't move Page 1, and we removed the moving block)
-            if (insertIndex === 0) insertIndex = 1;
+            if (oldIndex < newIndex) {
+                // Dragging down: Insert after the target section
+                insertIndex = targetSectionEnd + 1;
+            } else {
+                // Dragging up: Insert before the target section
+                insertIndex = targetSectionStart;
+            }
             
             const newItems = [
                 ...remainingItems.slice(0, insertIndex),
