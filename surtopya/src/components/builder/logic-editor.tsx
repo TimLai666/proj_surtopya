@@ -1,7 +1,7 @@
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Question, LogicRule } from "@/types/survey";
 import { Plus, Trash2, ArrowRight } from "lucide-react";
@@ -49,7 +49,16 @@ export function LogicEditor({ question, allQuestions, open, onOpenChange, onSave
   
   // Filter questions that come AFTER the current question to prevent loops
   const currentQuestionIndex = allQuestions.findIndex(q => q.id === question.id);
-  const availableDestinations = allQuestions.slice(currentQuestionIndex + 1);
+  
+  // 1. Questions on the same page (after current)
+  const samePageQuestions: Question[] = [];
+  for (let i = currentQuestionIndex + 1; i < allQuestions.length; i++) {
+      if (allQuestions[i].type === 'section') break;
+      samePageQuestions.push(allQuestions[i]);
+  }
+
+  // 2. Subsequent Pages (Sections)
+  const subsequentPages = allQuestions.slice(currentQuestionIndex + 1).filter(q => q.type === 'section');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -103,11 +112,24 @@ export function LogicEditor({ question, allQuestions, open, onOpenChange, onSave
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="end_survey">Submit Survey (End)</SelectItem>
-                            {availableDestinations.map(q => (
-                              <SelectItem key={q.id} value={q.id}>
-                                {q.title || "Untitled Question"}
-                              </SelectItem>
-                            ))}
+                            
+                            {samePageQuestions.length > 0 && (
+                                <SelectGroup>
+                                    <SelectLabel>Current Page</SelectLabel>
+                                    {samePageQuestions.map(q => (
+                                        <SelectItem key={q.id} value={q.id}>{q.title || "Untitled Question"}</SelectItem>
+                                    ))}
+                                </SelectGroup>
+                            )}
+
+                            {subsequentPages.length > 0 && (
+                                <SelectGroup>
+                                    <SelectLabel>Go to Page</SelectLabel>
+                                    {subsequentPages.map(q => (
+                                        <SelectItem key={q.id} value={q.id}>{q.title || "Untitled Page"}</SelectItem>
+                                    ))}
+                                </SelectGroup>
+                            )}
                           </SelectContent>
                         </Select>
                       </div>

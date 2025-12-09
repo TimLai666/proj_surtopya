@@ -11,13 +11,14 @@ import { Badge } from "@/components/ui/badge";
 
 interface QuestionCardProps {
   question: Question;
+  isFirstSection?: boolean;
   onUpdate: (id: string, updates: Partial<Question>) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
   onOpenLogic: (id: string) => void;
 }
 
-export function QuestionCard({ question, onUpdate, onDelete, onDuplicate, onOpenLogic }: QuestionCardProps) {
+export function QuestionCard({ question, isFirstSection, onUpdate, onDelete, onDuplicate, onOpenLogic }: QuestionCardProps) {
   const {
     attributes,
     listeners,
@@ -52,24 +53,54 @@ export function QuestionCard({ question, onUpdate, onDelete, onDuplicate, onOpen
   };
 
   return (
-    <Card ref={setNodeRef} style={style} className="group border-l-4 border-l-transparent hover:border-l-purple-500 transition-all duration-200">
-      <CardHeader className="flex flex-row items-start gap-4 space-y-0 p-4">
-        <div {...attributes} {...listeners} className="mt-2 cursor-grab text-gray-400 hover:text-gray-600 active:cursor-grabbing">
-          <GripVertical className="h-5 w-5" />
-        </div>
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      className="relative group mb-6"
+    >
+      <Card className={`transition-all duration-200 ${
+            isDragging ? 'shadow-2xl ring-2 ring-purple-500 rotate-2 opacity-80' : 'hover:shadow-md'
+        } ${
+            question.type === 'section' 
+                ? 'bg-[var(--primary)] text-white border-none' 
+                : ''
+        }`}>
+        <CardHeader className="flex flex-row items-start gap-4 space-y-0 p-4 relative">
+          <div 
+            {...attributes} 
+            {...listeners} 
+            className={`mt-2 cursor-grab active:cursor-grabbing ${question.type === 'section' ? 'text-white/50 hover:text-white' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            <GripVertical className="h-5 w-5" />
+          </div>
         
         <div className="flex-1 space-y-4">
           <div className="flex items-center gap-3">
             <Input 
               value={question.title} 
               onChange={(e) => onUpdate(question.id, { title: e.target.value })}
-              className="font-semibold text-lg border-transparent hover:border-gray-200 focus:border-purple-500 bg-transparent px-2 h-auto py-1"
-              placeholder="Question Title"
+              className={`font-semibold text-lg border-transparent focus:border-white/50 bg-transparent px-2 h-auto py-1 ${
+                  question.type === 'section' 
+                    ? 'text-xl text-white w-full text-center placeholder:text-white/50' 
+                    : 'hover:border-gray-200 focus:border-purple-500'
+              }`}
+              placeholder={question.type === 'section' ? "Page Title" : "Question Title"}
             />
-            <Badge variant="outline" className="capitalize text-xs text-gray-500">
-              {question.type}
-            </Badge>
+            {question.type !== 'section' && (
+                <Badge variant="outline" className="capitalize text-xs text-gray-500">
+                {question.type}
+                </Badge>
+            )}
           </div>
+          
+          {question.type === 'section' && (
+            <Input 
+                value={question.description || ''} 
+                onChange={(e) => onUpdate(question.id, { description: e.target.value })}
+                className="text-white/80 border-transparent focus:border-white/50 bg-transparent px-2 h-auto py-1 text-sm w-full text-center placeholder:text-white/40"
+                placeholder="Page Description (Optional)"
+            />
+          )}
 
           {/* Question Body based on Type */}
           <div className="pl-2">
@@ -109,6 +140,12 @@ export function QuestionCard({ question, onUpdate, onDelete, onDuplicate, onOpen
                 ))}
               </div>
             )}
+
+            {question.type === 'section' && (
+              <div className="flex flex-col items-center justify-center py-2 mt-2">
+                <div className="text-xs text-white/80">Questions below this line will appear on this page</div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -121,31 +158,41 @@ export function QuestionCard({ question, onUpdate, onDelete, onDuplicate, onOpen
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M6 3v12"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
             </Button>
           )}
-          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-red-500 hover:bg-red-50" onClick={() => onDelete(question.id)} title="Delete">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={`text-gray-400 ${isFirstSection ? 'opacity-50 cursor-not-allowed' : 'hover:text-red-500 hover:bg-red-50'}`} 
+            onClick={() => !isFirstSection && onDelete(question.id)} 
+            title={isFirstSection ? "Cannot delete first page" : "Delete"}
+            disabled={isFirstSection}
+          >
             <Trash2 className="h-5 w-5" />
           </Button>
         </div>
       </CardHeader>
       
-      <div className="border-t border-gray-100 bg-gray-50/50 p-2 px-4 flex justify-end gap-4 items-center text-xs text-gray-500">
-        <div className="flex items-center gap-2">
-          <span>Required</span>
-          <Switch 
-            checked={question.required} 
-            onCheckedChange={(checked) => onUpdate(question.id, { required: checked })} 
-          />
+      {question.type !== 'section' && (
+        <div className="border-t border-gray-100 bg-gray-50/50 p-2 px-4 flex justify-end gap-4 items-center text-xs text-gray-500">
+            <div className="flex items-center gap-2">
+            <span>Required</span>
+            <Switch 
+                checked={question.required} 
+                onCheckedChange={(checked) => onUpdate(question.id, { required: checked })} 
+            />
+            </div>
+            <div className="flex items-center gap-2">
+            <span>Points</span>
+            <Input 
+                type="number" 
+                value={question.points} 
+                onChange={(e) => onUpdate(question.id, { points: parseInt(e.target.value) || 0 })}
+                className="w-16 h-6 text-xs"
+            />
+            </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span>Points</span>
-          <Input 
-            type="number" 
-            value={question.points} 
-            onChange={(e) => onUpdate(question.id, { points: parseInt(e.target.value) || 0 })}
-            className="w-16 h-6 text-xs"
-          />
-        </div>
-      </div>
+      )}
     </Card>
+    </div>
   );
 }
 

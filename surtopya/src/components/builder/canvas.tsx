@@ -26,11 +26,12 @@ export function Canvas({ questions, onUpdate, onDelete, onDuplicate, onOpenLogic
   }
 
   return (
-    <div ref={setNodeRef} className="space-y-6 pb-20 min-h-[500px]">
-      {questions.map((question) => (
+    <div ref={setNodeRef} className="pb-20 min-h-[500px]">
+      {questions.map((question, index) => (
         <QuestionCard 
           key={question.id} 
           question={question} 
+          isFirstSection={index === 0 && question.type === 'section'}
           onUpdate={onUpdate} 
           onDelete={onDelete} 
           onDuplicate={onDuplicate}

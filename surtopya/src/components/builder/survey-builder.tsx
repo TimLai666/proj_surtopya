@@ -8,7 +8,7 @@ import { Toolbox } from "./toolbox";
 import { Canvas } from "./canvas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Save, Eye, Palette, Layout } from "lucide-react";
+import { Save, Eye, Palette, Layout, Split } from "lucide-react";
 import { nanoid } from "nanoid";
 import { ThemeEditor } from "./theme-editor";
 import { LogicEditor } from "./logic-editor";
@@ -18,7 +18,15 @@ import { SurveyTheme, LogicRule } from "@/types/survey";
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 export function SurveyBuilder() {
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<Question[]>([
+    {
+        id: 'page-1',
+        type: 'section',
+        title: 'Page 1',
+        required: false,
+        points: 0,
+    }
+  ]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<any>(null); // Track active item data
   const [title, setTitle] = useState("Untitled Survey");
@@ -87,7 +95,13 @@ export function SurveyBuilder() {
 
           setQuestions(items => {
             // Insert at the hover position or end
-            const overIndex = items.findIndex(item => item.id === over.id);
+            let overIndex = items.findIndex(item => item.id === over.id);
+            
+            // Prevent inserting before the first section
+            if (overIndex === 0 && items.length > 0 && items[0].type === 'section') {
+                overIndex = 1;
+            }
+
             const newItems = [...items];
             
             if (overIndex !== -1) {
@@ -156,7 +170,15 @@ export function SurveyBuilder() {
       setQuestions((items) => {
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
+        
+        const newItems = arrayMove(items, oldIndex, newIndex);
+        
+        // Enforce: First item must be a section
+        if (newItems.length > 0 && newItems[0].type !== 'section') {
+            return items;
+        }
+        
+        return newItems;
       });
       setIsDirty(true);
     } else {
@@ -174,6 +196,10 @@ export function SurveyBuilder() {
   };
 
   const deleteQuestion = (id: string) => {
+    // Prevent deleting the first page/section
+    if (questions.length > 0 && questions[0].id === id && questions[0].type === 'section') {
+        return;
+    }
     setQuestions(questions.filter(q => q.id !== id));
     setIsDirty(true);
   };
@@ -208,6 +234,18 @@ export function SurveyBuilder() {
     }
   };
 
+  const addPage = () => {
+    const newSection: Question = {
+        id: generateId(),
+        type: 'section',
+        title: "New Page",
+        required: false,
+        points: 0,
+    };
+    setQuestions([...questions, newSection]);
+    setIsDirty(true);
+  };
+
   if (!mounted) return null;
 
   return (
@@ -229,6 +267,10 @@ export function SurveyBuilder() {
           <Button variant="outline" size="sm">
             <Eye className="mr-2 h-4 w-4" />
             Preview
+          </Button>
+          <Button variant="outline" size="sm" onClick={addPage}>
+            <Split className="mr-2 h-4 w-4" />
+            Add Page
           </Button>
           <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => setIsDirty(false)}>
             <Save className="mr-2 h-4 w-4" />
