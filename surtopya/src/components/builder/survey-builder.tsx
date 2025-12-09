@@ -8,7 +8,7 @@ import { Toolbox } from "./toolbox";
 import { Canvas } from "./canvas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Save, Eye, Palette, Layout, Split, ArrowLeft } from "lucide-react";
+import { Save, Eye, Palette, Layout, Split, ArrowLeft, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { nanoid } from "nanoid";
 import { ThemeEditor } from "./theme-editor";
@@ -52,6 +52,10 @@ export function SurveyBuilder() {
   const [activeLogicQuestionId, setActiveLogicQuestionId] = useState<string | null>(null);
   const [deletingQuestionId, setDeletingQuestionId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [description, setDescription] = useState("");
+  const [pointsReward, setPointsReward] = useState(0);
+  const [isPublic, setIsPublic] = useState(true);
 
   React.useEffect(() => {
     setMounted(true);
@@ -402,11 +406,11 @@ export function SurveyBuilder() {
     const surveyData = {
       id: 'preview',
       title,
-      description: '',
+      description,
       questions,
       settings: {
-        isPublic: true,
-        pointsReward: 0,
+        isPublic,
+        pointsReward,
       }
     };
     sessionStorage.setItem('preview_survey', JSON.stringify(surveyData));
@@ -435,6 +439,10 @@ export function SurveyBuilder() {
           />
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
+            <Settings className="mr-2 h-4 w-4" />
+            Settings
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setActiveSidebar(activeSidebar === 'theme' ? 'toolbox' : 'theme')}>
             <Palette className="mr-2 h-4 w-4" />
             Theme
@@ -542,6 +550,69 @@ export function SurveyBuilder() {
                 <DialogFooter>
                     <Button variant="outline" onClick={() => setDeletingQuestionId(null)}>Cancel</Button>
                     <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        {/* Settings Dialog */}
+        <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+            <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                    <DialogTitle>Survey Settings</DialogTitle>
+                    <DialogDescription>
+                        Configure your survey details and options.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-6 py-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Survey Title</label>
+                        <Input 
+                            value={title} 
+                            onChange={(e) => { setTitle(e.target.value); setIsDirty(true); }}
+                            placeholder="Enter survey title"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Description</label>
+                        <textarea 
+                            value={description} 
+                            onChange={(e) => { setDescription(e.target.value); setIsDirty(true); }}
+                            placeholder="Describe what this survey is about..."
+                            className="w-full min-h-[100px] rounded-md border border-gray-200 bg-transparent px-3 py-2 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:border-gray-800"
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Points Reward</label>
+                            <Input 
+                                type="number" 
+                                value={pointsReward} 
+                                onChange={(e) => { setPointsReward(Number(e.target.value)); setIsDirty(true); }}
+                                min={0}
+                            />
+                            <p className="text-xs text-gray-500">Points awarded to respondents</p>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Visibility</label>
+                            <div className="flex items-center gap-3 pt-2">
+                                <button
+                                    onClick={() => { setIsPublic(true); setIsDirty(true); }}
+                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${isPublic ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
+                                >
+                                    Public
+                                </button>
+                                <button
+                                    onClick={() => { setIsPublic(false); setIsDirty(true); }}
+                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${!isPublic ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
+                                >
+                                    Private
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button onClick={() => setSettingsOpen(false)} className="bg-purple-600 hover:bg-purple-700 text-white">Done</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

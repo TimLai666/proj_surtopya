@@ -105,7 +105,7 @@ export function QuestionCard({ question, isFirstSection, onUpdate, onDelete, onD
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1 text-amber-500">
+                    <div className="flex items-center gap-1 text-red-500">
                       <AlertTriangle className="h-5 w-5" />
                     </div>
                   </TooltipTrigger>

@@ -125,12 +125,12 @@ export function LogicEditor({ question, allQuestions, open, onOpenChange, onSave
                                 value={rule.destinationQuestionId} 
                                 onValueChange={(val) => updateRule(index, 'destinationQuestionId', val)}
                               >
-                                <SelectTrigger className={`h-9 flex-1 ${isInvalid ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20' : ''}`}>
+                                <SelectTrigger className={`h-9 flex-1 ${isInvalid ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : ''}`}>
                                   <SelectValue placeholder="Select Question">
                                     {isInvalid && destQuestion ? (
-                                      <span className="text-amber-600">{destQuestion.title || 'Untitled'} {invalidReason}</span>
+                                      <span className="text-red-600">{destQuestion.title || 'Untitled'} {invalidReason}</span>
                                     ) : isInvalid && !destQuestion ? (
-                                      <span className="text-amber-600">Deleted Question {invalidReason}</span>
+                                      <span className="text-red-600">Deleted Question {invalidReason}</span>
                                     ) : undefined}
                                   </SelectValue>
                                 </SelectTrigger>
@@ -157,7 +157,7 @@ export function LogicEditor({ question, allQuestions, open, onOpenChange, onSave
                                 </SelectContent>
                               </Select>
                               {isInvalid && (
-                                <div className="text-amber-500" title={`Logic jump is invalid: ${invalidReason}`}>
+                                <div className="text-red-500" title={`Logic jump is invalid: ${invalidReason}`}>
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
                                     <path d="M12 9v4"/>
