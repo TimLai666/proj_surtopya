@@ -103,35 +103,71 @@ export function LogicEditor({ question, allQuestions, open, onOpenChange, onSave
 
                       <div className="space-y-1">
                         <Label className="text-xs text-gray-500">Jump to</Label>
-                        <Select 
-                          value={rule.destinationQuestionId} 
-                          onValueChange={(val) => updateRule(index, 'destinationQuestionId', val)}
-                        >
-                          <SelectTrigger className="h-9">
-                            <SelectValue placeholder="Select Question" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="end_survey">Submit Survey (End)</SelectItem>
-                            
-                            {samePageQuestions.length > 0 && (
-                                <SelectGroup>
-                                    <SelectLabel>Current Page</SelectLabel>
-                                    {samePageQuestions.map(q => (
-                                        <SelectItem key={q.id} value={q.id}>{q.title || "Untitled Question"}</SelectItem>
-                                    ))}
-                                </SelectGroup>
-                            )}
+                        {(() => {
+                          // Check if current destination is invalid
+                          const destId = rule.destinationQuestionId;
+                          const isEndSurvey = destId === 'end_survey';
+                          const destQuestion = allQuestions.find(q => q.id === destId);
+                          const destIndex = allQuestions.findIndex(q => q.id === destId);
+                          const isInvalid = !isEndSurvey && destId && (
+                            !destQuestion || // Question was deleted
+                            destIndex <= currentQuestionIndex // Question is before or at current position
+                          );
+                          const invalidReason = !destQuestion 
+                            ? '(Deleted)' 
+                            : destIndex <= currentQuestionIndex 
+                              ? '(Invalid position)' 
+                              : '';
+                          
+                          return (
+                            <div className="flex items-center gap-2">
+                              <Select 
+                                value={rule.destinationQuestionId} 
+                                onValueChange={(val) => updateRule(index, 'destinationQuestionId', val)}
+                              >
+                                <SelectTrigger className={`h-9 flex-1 ${isInvalid ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20' : ''}`}>
+                                  <SelectValue placeholder="Select Question">
+                                    {isInvalid && destQuestion ? (
+                                      <span className="text-amber-600">{destQuestion.title || 'Untitled'} {invalidReason}</span>
+                                    ) : isInvalid && !destQuestion ? (
+                                      <span className="text-amber-600">Deleted Question {invalidReason}</span>
+                                    ) : undefined}
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="end_survey">Submit Survey (End)</SelectItem>
+                                  
+                                  {samePageQuestions.length > 0 && (
+                                      <SelectGroup>
+                                          <SelectLabel>Current Page</SelectLabel>
+                                          {samePageQuestions.map(q => (
+                                              <SelectItem key={q.id} value={q.id}>{q.title || "Untitled Question"}</SelectItem>
+                                          ))}
+                                      </SelectGroup>
+                                  )}
 
-                            {subsequentPages.length > 0 && (
-                                <SelectGroup>
-                                    <SelectLabel>Go to Page</SelectLabel>
-                                    {subsequentPages.map(q => (
-                                        <SelectItem key={q.id} value={q.id}>{q.title || "Untitled Page"}</SelectItem>
-                                    ))}
-                                </SelectGroup>
-                            )}
-                          </SelectContent>
-                        </Select>
+                                  {subsequentPages.length > 0 && (
+                                      <SelectGroup>
+                                          <SelectLabel>Go to Page</SelectLabel>
+                                          {subsequentPages.map(q => (
+                                              <SelectItem key={q.id} value={q.id}>{q.title || "Untitled Page"}</SelectItem>
+                                          ))}
+                                      </SelectGroup>
+                                  )}
+                                </SelectContent>
+                              </Select>
+                              {isInvalid && (
+                                <div className="text-amber-500" title={`Logic jump is invalid: ${invalidReason}`}>
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                                    <path d="M12 9v4"/>
+                                    <path d="M12 17h.01"/>
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                     
