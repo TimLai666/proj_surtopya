@@ -6,8 +6,14 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch"; // Need to install switch
-import { GripVertical, Trash2, Plus, X, Copy } from "lucide-react";
+import { GripVertical, Trash2, Plus, X, Copy, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface QuestionCardProps {
   question: Question;
@@ -18,9 +24,11 @@ interface QuestionCardProps {
   onOpenLogic: (id: string) => void;
   isHidden?: boolean;
   isOverlay?: boolean;
+  hasLogicWarning?: boolean;
+  logicWarningMessage?: string;
 }
 
-export function QuestionCard({ question, isFirstSection, onUpdate, onDelete, onDuplicate, onOpenLogic, isHidden, isOverlay }: QuestionCardProps) {
+export function QuestionCard({ question, isFirstSection, onUpdate, onDelete, onDuplicate, onOpenLogic, isHidden, isOverlay, hasLogicWarning, logicWarningMessage }: QuestionCardProps) {
   const {
     attributes,
     listeners,
@@ -92,6 +100,20 @@ export function QuestionCard({ question, isFirstSection, onUpdate, onDelete, onD
                 <Badge variant="outline" className="capitalize text-xs text-gray-500">
                 {question.type}
                 </Badge>
+            )}
+            {hasLogicWarning && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1 text-amber-500">
+                      <AlertTriangle className="h-5 w-5" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-sm">{logicWarningMessage || 'Logic jump may be invalid'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
           

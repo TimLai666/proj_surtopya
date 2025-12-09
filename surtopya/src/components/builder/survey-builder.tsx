@@ -370,6 +370,33 @@ export function SurveyBuilder() {
     setIsDirty(true);
   };
 
+  // Validate logic jumps - returns warning message if invalid, null if valid
+  const getLogicWarning = (questionId: string): string | null => {
+    const questionIndex = questions.findIndex(q => q.id === questionId);
+    if (questionIndex === -1) return null;
+    
+    const question = questions[questionIndex];
+    if (!question.logic || question.logic.length === 0) return null;
+    
+    for (const rule of question.logic) {
+      // Skip "end_survey" - always valid
+      if (rule.destinationQuestionId === 'end_survey') continue;
+      
+      // Check if destination exists
+      const destIndex = questions.findIndex(q => q.id === rule.destinationQuestionId);
+      if (destIndex === -1) {
+        return 'Logic jump points to a deleted question';
+      }
+      
+      // Check if destination is AFTER current question (forward jump only)
+      if (destIndex <= questionIndex) {
+        return 'Logic jump points to a question before or at current position';
+      }
+    }
+    
+    return null;
+  };
+
   const openPreview = () => {
     // Save survey data to sessionStorage for the preview page
     const surveyData = {
@@ -487,6 +514,7 @@ export function SurveyBuilder() {
                   onDuplicate={duplicateQuestion}
                   onOpenLogic={openLogicEditor}
                   activeId={activeId}
+                  getLogicWarning={getLogicWarning}
                 />
               </SortableContext>
             </div>

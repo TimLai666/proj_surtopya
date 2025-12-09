@@ -10,9 +10,10 @@ interface CanvasProps {
   onDuplicate: (id: string) => void;
   onOpenLogic: (id: string) => void;
   activeId: string | null;
+  getLogicWarning: (questionId: string) => string | null;
 }
 
-export function Canvas({ questions, onUpdate, onDelete, onDuplicate, onOpenLogic, activeId }: CanvasProps) {
+export function Canvas({ questions, onUpdate, onDelete, onDuplicate, onOpenLogic, activeId, getLogicWarning }: CanvasProps) {
   const { setNodeRef } = useDroppable({
     id: 'canvas-droppable',
   });
@@ -71,7 +72,9 @@ export function Canvas({ questions, onUpdate, onDelete, onDuplicate, onOpenLogic
 
         return (
             <>
-                {orphanedQuestions.map((q) => (
+                {orphanedQuestions.map((q) => {
+                    const warning = getLogicWarning(q.id);
+                    return (
                     <QuestionCard 
                         key={q.id} 
                         question={q} 
@@ -81,8 +84,10 @@ export function Canvas({ questions, onUpdate, onDelete, onDuplicate, onOpenLogic
                         onDuplicate={onDuplicate}
                         onOpenLogic={onOpenLogic}
                         isHidden={hiddenIds.has(q.id)}
+                        hasLogicWarning={!!warning}
+                        logicWarningMessage={warning || undefined}
                     />
-                ))}
+                )})}
                 {sections.map((section, sectionIndex) => (
                     <div key={section.header.id} className="mb-8 rounded-xl border border-gray-200 bg-white/50 p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900/50">
                         <QuestionCard 
@@ -96,7 +101,9 @@ export function Canvas({ questions, onUpdate, onDelete, onDuplicate, onOpenLogic
                             isHidden={hiddenIds.has(section.header.id)}
                         />
                         <div className="pl-4 mt-4 space-y-4 border-l-2 border-gray-100 dark:border-gray-800 ml-4">
-                            {section.children.map((q) => (
+                            {section.children.map((q) => {
+                                const warning = getLogicWarning(q.id);
+                                return (
                                 <QuestionCard 
                                     key={q.id} 
                                     question={q} 
@@ -106,8 +113,10 @@ export function Canvas({ questions, onUpdate, onDelete, onDuplicate, onOpenLogic
                                     onDuplicate={onDuplicate}
                                     onOpenLogic={onOpenLogic}
                                     isHidden={hiddenIds.has(q.id)}
+                                    hasLogicWarning={!!warning}
+                                    logicWarningMessage={warning || undefined}
                                 />
-                            ))}
+                            )})}
                         </div>
                     </div>
                 ))}
