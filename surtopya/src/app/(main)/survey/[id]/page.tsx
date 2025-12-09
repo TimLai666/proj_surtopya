@@ -252,7 +252,7 @@ export default function SurveyPage() {
 
         {/* Exit Confirmation Dialog */}
         <Dialog open={showExitDialog} onOpenChange={setShowExitDialog}>
-          <DialogContent>
+          <DialogContent onInteractOutside={(e) => e.preventDefault()}>
             <DialogHeader>
               <DialogTitle>Exit Survey?</DialogTitle>
               <DialogDescription>

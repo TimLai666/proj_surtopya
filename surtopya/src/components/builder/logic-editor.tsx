@@ -62,7 +62,7 @@ export function LogicEditor({ question, allQuestions, open, onOpenChange, onSave
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px]" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Logic Jumps for "{question.title}"</DialogTitle>
         </DialogHeader>
