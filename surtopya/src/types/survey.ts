@@ -1,5 +1,10 @@
 export type QuestionType = 'single' | 'multi' | 'text' | 'rating' | 'date' | 'select';
 
+export interface LogicRule {
+    triggerOption: string;
+    destinationQuestionId: string;
+}
+
 export interface Question {
     id: string;
     type: QuestionType;
@@ -8,6 +13,7 @@ export interface Question {
     options?: string[]; // For single/multi choice
     required: boolean;
     points: number;
+    logic?: LogicRule[];
 }
 
 export interface SurveyTheme {

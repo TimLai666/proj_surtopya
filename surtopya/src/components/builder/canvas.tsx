@@ -8,9 +8,10 @@ interface CanvasProps {
   onUpdate: (id: string, updates: Partial<Question>) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
+  onOpenLogic: (id: string) => void;
 }
 
-export function Canvas({ questions, onUpdate, onDelete, onDuplicate }: CanvasProps) {
+export function Canvas({ questions, onUpdate, onDelete, onDuplicate, onOpenLogic }: CanvasProps) {
   const { setNodeRef } = useDroppable({
     id: 'canvas-droppable',
   });
@@ -33,6 +34,7 @@ export function Canvas({ questions, onUpdate, onDelete, onDuplicate }: CanvasPro
           onUpdate={onUpdate} 
           onDelete={onDelete} 
           onDuplicate={onDuplicate}
+          onOpenLogic={onOpenLogic}
         />
       ))}
     </div>

@@ -14,9 +14,10 @@ interface QuestionCardProps {
   onUpdate: (id: string, updates: Partial<Question>) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
+  onOpenLogic: (id: string) => void;
 }
 
-export function QuestionCard({ question, onUpdate, onDelete, onDuplicate }: QuestionCardProps) {
+export function QuestionCard({ question, onUpdate, onDelete, onDuplicate, onOpenLogic }: QuestionCardProps) {
   const {
     attributes,
     listeners,
@@ -115,6 +116,11 @@ export function QuestionCard({ question, onUpdate, onDelete, onDuplicate }: Ques
           <Button variant="ghost" size="icon" className="text-gray-400 hover:text-purple-600 hover:bg-purple-50" onClick={() => onDuplicate(question.id)} title="Duplicate">
             <Copy className="h-5 w-5" />
           </Button>
+          {(question.type === 'single' || question.type === 'select') && (
+            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-blue-600 hover:bg-blue-50" onClick={() => onOpenLogic(question.id)} title="Logic Jumps">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M6 3v12"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+            </Button>
+          )}
           <Button variant="ghost" size="icon" className="text-gray-400 hover:text-red-500 hover:bg-red-50" onClick={() => onDelete(question.id)} title="Delete">
             <Trash2 className="h-5 w-5" />
           </Button>

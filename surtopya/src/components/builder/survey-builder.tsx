@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Save, Eye, Palette, Layout } from "lucide-react";
 import { nanoid } from "nanoid";
 import { ThemeEditor } from "./theme-editor";
-import { SurveyTheme } from "@/types/survey";
+import { LogicEditor } from "./logic-editor";
+import { SurveyTheme, LogicRule } from "@/types/survey";
 
 // Simple ID generator if nanoid causes issues or for simplicity
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -28,6 +29,8 @@ export function SurveyBuilder() {
     backgroundColor: '#f9fafb', // gray-50
     fontFamily: 'inter',
   });
+  const [logicEditorOpen, setLogicEditorOpen] = useState(false);
+  const [activeLogicQuestionId, setActiveLogicQuestionId] = useState<string | null>(null);
 
   // Warn on exit if unsaved
   React.useEffect(() => {
@@ -178,6 +181,7 @@ export function SurveyBuilder() {
       ...questionToDuplicate,
       id: generateId(),
       title: `${questionToDuplicate.title} (Copy)`,
+      logic: [], // Don't copy logic to avoid broken references
     };
 
     const index = questions.findIndex(q => q.id === id);
@@ -186,6 +190,17 @@ export function SurveyBuilder() {
     
     setQuestions(newQuestions);
     setIsDirty(true);
+  };
+
+  const openLogicEditor = (id: string) => {
+    setActiveLogicQuestionId(id);
+    setLogicEditorOpen(true);
+  };
+
+  const saveLogic = (logic: LogicRule[]) => {
+    if (activeLogicQuestionId) {
+        updateQuestion(activeLogicQuestionId, { logic });
+    }
   };
 
   return (
@@ -262,11 +277,22 @@ export function SurveyBuilder() {
                   onUpdate={updateQuestion} 
                   onDelete={deleteQuestion} 
                   onDuplicate={duplicateQuestion}
+                  onOpenLogic={openLogicEditor}
                 />
               </SortableContext>
             </div>
           </main>
         </div>
+        
+        {activeLogicQuestionId && (
+            <LogicEditor 
+                question={questions.find(q => q.id === activeLogicQuestionId)!}
+                allQuestions={questions}
+                open={logicEditorOpen}
+                onOpenChange={setLogicEditorOpen}
+                onSave={saveLogic}
+            />
+        )}
         
         <DragOverlay dropAnimation={null}>
           {activeId ? (

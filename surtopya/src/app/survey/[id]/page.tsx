@@ -18,9 +18,10 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Survey, Question, LogicRule } from "@/types/survey";
 
 // Mock Survey Data
-const MOCK_SURVEY = {
+const MOCK_SURVEY: Survey = {
   id: "1",
   title: "Consumer Preferences 2024",
   description: "Help us understand your shopping habits. This survey takes about 2 minutes.",
@@ -31,6 +32,7 @@ const MOCK_SURVEY = {
       title: "How often do you shop online?",
       required: true,
       options: ["Daily", "Weekly", "Monthly", "Rarely"],
+      points: 10,
     },
     {
       id: "q2",
@@ -38,18 +40,21 @@ const MOCK_SURVEY = {
       title: "Which platforms do you use? (Select all that apply)",
       required: false,
       options: ["Amazon", "eBay", "Shopify Stores", "Etsy", "AliExpress"],
+      points: 10,
     },
     {
       id: "q3",
       type: "text",
       title: "What is your biggest frustration with online shopping?",
       required: true,
+      points: 10,
     },
     {
       id: "q4",
       type: "rating",
       title: "Rate your last online shopping experience",
       required: true,
+      points: 10,
     },
     {
       id: "q5",
@@ -57,14 +62,20 @@ const MOCK_SURVEY = {
       title: "What is your age group?",
       required: true,
       options: ["18-24", "25-34", "35-44", "45-54", "55+"],
+      points: 10,
     },
     {
       id: "q6",
       type: "date",
       title: "When did you last make an online purchase?",
       required: false,
+      points: 10,
     },
   ],
+  settings: {
+    isPublic: true,
+    pointsReward: 50,
+  }
 };
 
 export default function SurveyPage() {
@@ -77,6 +88,26 @@ export default function SurveyPage() {
   const currentQuestion = MOCK_SURVEY.questions[currentStep];
 
   const handleNext = () => {
+    const currentAnswer = answers[currentQuestion.id];
+    
+    // Check for logic jumps
+    if (currentQuestion.logic && currentQuestion.logic.length > 0) {
+      const matchedRule = currentQuestion.logic.find(rule => rule.triggerOption === currentAnswer);
+      
+      if (matchedRule) {
+        if (matchedRule.destinationQuestionId === 'end_survey') {
+          router.push("/survey/thank-you");
+          return;
+        }
+        
+        const destinationIndex = MOCK_SURVEY.questions.findIndex(q => q.id === matchedRule.destinationQuestionId);
+        if (destinationIndex !== -1) {
+          setCurrentStep(destinationIndex);
+          return;
+        }
+      }
+    }
+
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     } else {
