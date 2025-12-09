@@ -177,10 +177,34 @@ export function SurveyBuilder() {
       if (placeholderIndex !== -1) {
           const newItems = [...questions];
           newItems[placeholderIndex] = newQuestion;
+          
+          // Enforce: Cannot be before first section
+          if (placeholderIndex === 0 && newItems.length > 1 && newItems[1].type === 'section') {
+             // Swap if needed, but usually we just want to ensure it's not at 0 if 0 is section
+             // Actually, if 0 is section, we can't be at 0 unless we replaced it? No, placeholder is separate.
+             // If placeholder is at 0, and we have a section at 1 (previously 0), then we are before it.
+          }
+          
+          // Simpler enforcement: If index 0 is NOT a section, move it.
+          // But wait, we have "Page 1" which is a section.
+          // So items[0] MUST be a section.
+          
+          if (newItems.length > 0 && newItems[0].type !== 'section') {
+              // We just replaced placeholder at 0 with a non-section.
+              // We need to move it to 1.
+              const firstItem = newItems[0];
+              newItems.splice(0, 1);
+              newItems.splice(1, 0, firstItem);
+          }
+
           setQuestions(newItems);
           setIsDirty(true);
       } else {
-          // Fallback if no placeholder (e.g. dropped directly on empty canvas without dragover firing enough)
+          // Fallback if no placeholder
+          // Append to end is safe.
+          // But what if list was empty? (Not possible due to Page 1)
+          // What if dropped "before" Page 1 but no placeholder?
+          // We'll just append to end to be safe.
           setQuestions([...cleanQuestions, newQuestion]);
           setIsDirty(true);
       }
