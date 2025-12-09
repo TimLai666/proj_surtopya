@@ -8,16 +8,26 @@ import { Toolbox } from "./toolbox";
 import { Canvas } from "./canvas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Save, Eye, Palette, Layout, Split } from "lucide-react";
+import { Save, Eye, Palette, Layout, Split, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { nanoid } from "nanoid";
 import { ThemeEditor } from "./theme-editor";
 import { LogicEditor } from "./logic-editor";
 import { SurveyTheme, LogicRule } from "@/types/survey";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Simple ID generator if nanoid causes issues or for simplicity
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 export function SurveyBuilder() {
+  const router = useRouter();
   const [questions, setQuestions] = useState<Question[]>([
     {
         id: 'page-1',
@@ -39,6 +49,7 @@ export function SurveyBuilder() {
   });
   const [logicEditorOpen, setLogicEditorOpen] = useState(false);
   const [activeLogicQuestionId, setActiveLogicQuestionId] = useState<string | null>(null);
+  const [deletingQuestionId, setDeletingQuestionId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   React.useEffect(() => {
@@ -140,6 +151,15 @@ export function SurveyBuilder() {
       return;
     }
 
+    // Check if dropped on a valid target (canvas or existing question)
+    const isOverCanvas = over.id === 'canvas-droppable' || questions.some(q => q.id === over.id);
+    if (!isOverCanvas) {
+        setActiveId(null);
+        setActiveItem(null);
+        setQuestions(cleanQuestions);
+        return;
+    }
+
     // Dropping a new item from Toolbox
     if (active.data.current?.isToolboxItem) {
       const type = active.data.current.type as QuestionType;
@@ -171,6 +191,50 @@ export function SurveyBuilder() {
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over.id);
         
+        // If moving a section, move the whole block
+        if (items[oldIndex].type === 'section') {
+            // 1. Find the block of questions belonging to this section
+            let endIndex = oldIndex;
+            for (let i = oldIndex + 1; i < items.length; i++) {
+                if (items[i].type === 'section') break;
+                endIndex = i;
+            }
+            
+            const movingBlock = items.slice(oldIndex, endIndex + 1);
+            const remainingItems = items.filter((_, index) => index < oldIndex || index > endIndex);
+            
+            // 2. Find where to insert in the remaining items
+            // We need to find the index of the 'over' item in the remaining array
+            // But 'over.id' might be in the remaining array OR it might be one of the items we just removed (if we dragged self?)
+            // Actually if active.id != over.id, over.id must be in remainingItems (unless we dragged a parent onto a child, which isn't possible here)
+            
+            let insertIndex = remainingItems.findIndex(item => item.id === over.id);
+            
+            // If dragging down (newIndex > oldIndex), we typically want to insert AFTER the target
+            // But standard dnd-kit behavior is "insert at position".
+            // If we drop onto a section, we want to swap order.
+            // If we drop onto a question, we split the page?
+            // Let's stick to: Insert BEFORE the target item.
+            
+            // Correction: If we are dragging DOWN, the user expects it to go AFTER the item they hover over (if using sortable strategy visually)
+            // But let's keep it simple: Insert at the index of the over item.
+            
+            if (insertIndex === -1) return items; // Should not happen
+            
+            // Enforce: Cannot insert before the first section (Page 1)
+            // Page 1 is always at index 0 of remainingItems (since we can't move Page 1, and we removed the moving block)
+            if (insertIndex === 0) insertIndex = 1;
+            
+            const newItems = [
+                ...remainingItems.slice(0, insertIndex),
+                ...movingBlock,
+                ...remainingItems.slice(insertIndex)
+            ];
+            
+            return newItems;
+        }
+
+        // Normal question reordering
         const newItems = arrayMove(items, oldIndex, newIndex);
         
         // Enforce: First item must be a section
@@ -200,8 +264,15 @@ export function SurveyBuilder() {
     if (questions.length > 0 && questions[0].id === id && questions[0].type === 'section') {
         return;
     }
-    setQuestions(questions.filter(q => q.id !== id));
-    setIsDirty(true);
+    setDeletingQuestionId(id);
+  };
+
+  const confirmDelete = () => {
+    if (deletingQuestionId) {
+        setQuestions(questions.filter(q => q.id !== deletingQuestionId));
+        setIsDirty(true);
+        setDeletingQuestionId(null);
+    }
   };
 
   const duplicateQuestion = (id: string) => {
@@ -253,6 +324,9 @@ export function SurveyBuilder() {
       {/* Header */}
       <header className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3 dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
           <Input 
             value={title} 
             onChange={(e) => setTitle(e.target.value)} 
@@ -342,6 +416,21 @@ export function SurveyBuilder() {
                 onSave={saveLogic}
             />
         )}
+
+        <Dialog open={!!deletingQuestionId} onOpenChange={(open) => !open && setDeletingQuestionId(null)}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Delete Question?</DialogTitle>
+                    <DialogDescription>
+                        Are you sure you want to delete this question? This action cannot be undone.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setDeletingQuestionId(null)}>Cancel</Button>
+                    <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
         
         <DragOverlay dropAnimation={null}>
           {activeId ? (
