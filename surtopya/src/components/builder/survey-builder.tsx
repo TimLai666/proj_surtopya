@@ -380,6 +380,8 @@ export function SurveyBuilder() {
           <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
+          <span className="font-bold text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Surtopya</span>
+          <div className="h-6 w-px bg-gray-200 dark:bg-gray-800" />
           <Input 
             value={title} 
             onChange={(e) => setTitle(e.target.value)} 
@@ -447,7 +449,18 @@ export function SurveyBuilder() {
             }}
           >
             <div className="mx-auto max-w-3xl" style={{ '--primary': theme.primaryColor } as React.CSSProperties}>
-              <SortableContext items={questions.map(q => q.id)} strategy={verticalListSortingStrategy}>
+              <SortableContext 
+                items={questions.map(q => q.id).filter(id => {
+                    if (!activeItem) return true;
+                    // If dragging a section, only sections are sortable targets
+                    if (activeItem.type === 'section') {
+                        const q = questions.find(i => i.id === id);
+                        return q?.type === 'section';
+                    }
+                    return true;
+                })} 
+                strategy={verticalListSortingStrategy}
+              >
                 <Canvas 
                   questions={questions} 
                   onUpdate={updateQuestion} 
@@ -502,7 +515,7 @@ export function SurveyBuilder() {
              ) : (
                  <div className="w-[800px]"> {/* Fixed width for drag overlay to match canvas */}
                     {activeItem.type === 'section' ? (
-                        <div className="flex flex-col">
+                        <div className="flex flex-col mb-8 rounded-xl border border-gray-200 bg-white/50 p-4 shadow-2xl dark:border-gray-800 dark:bg-gray-900/50 rotate-2 opacity-90 cursor-grabbing ring-2 ring-purple-500">
                             <QuestionCard 
                                 question={activeItem} 
                                 onUpdate={() => {}} 
@@ -510,19 +523,21 @@ export function SurveyBuilder() {
                                 onDuplicate={() => {}} 
                                 onOpenLogic={() => {}}
                                 isOverlay
+                                isFirstSection={true}
                             />
                             {/* Render questions belonging to this section */}
-                            {(() => {
-                                const index = questions.findIndex(q => q.id === activeItem.id);
-                                if (index === -1) return null;
-                                const sectionQuestions = [];
-                                for (let i = index + 1; i < questions.length; i++) {
-                                    if (questions[i].type === 'section') break;
-                                    sectionQuestions.push(questions[i]);
-                                }
-                                return sectionQuestions.map((q, i) => (
-                                    <div key={q.id} className="mt-6">
+                            <div className="pl-4 mt-4 space-y-4 border-l-2 border-gray-100 dark:border-gray-800 ml-4">
+                                {(() => {
+                                    const index = questions.findIndex(q => q.id === activeItem.id);
+                                    if (index === -1) return null;
+                                    const sectionQuestions = [];
+                                    for (let i = index + 1; i < questions.length; i++) {
+                                        if (questions[i].type === 'section') break;
+                                        sectionQuestions.push(questions[i]);
+                                    }
+                                    return sectionQuestions.map((q, i) => (
                                         <QuestionCard 
+                                            key={q.id}
                                             question={q} 
                                             onUpdate={() => {}} 
                                             onDelete={() => {}} 
@@ -530,9 +545,9 @@ export function SurveyBuilder() {
                                             onOpenLogic={() => {}}
                                             isOverlay
                                         />
-                                    </div>
-                                ));
-                            })()}
+                                    ));
+                                })()}
+                            </div>
                         </div>
                     ) : (
                         <QuestionCard 
