@@ -1,7 +1,12 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
+import { useState } from "react";
 
 export default function PricingPage() {
+  // Mock Auth - consistent with Navbar
+  const isAuthenticated = true; 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-20">
       <div className="container px-4 md:px-6">
@@ -36,7 +41,9 @@ export default function PricingPage() {
                 <Check className="h-4 w-4 text-green-500" /> Basic Analytics
               </li>
             </ul>
-            <Button variant="outline" className="w-full">Get Started</Button>
+            <Button variant="outline" className="w-full" disabled={isAuthenticated}>
+              {isAuthenticated ? "Current Plan" : "Get Started"}
+            </Button>
           </div>
 
           {/* Pro Plan */}
@@ -66,7 +73,9 @@ export default function PricingPage() {
                 <Check className="h-4 w-4 text-purple-500" /> Priority Support
               </li>
             </ul>
-            <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">Start Free Trial</Button>
+            <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+              {isAuthenticated ? "Upgrade to Pro" : "Start Free Trial"}
+            </Button>
           </div>
 
           {/* Enterprise Plan */}

@@ -37,7 +37,7 @@ export function SurveyCard({
   // Determine link based on variant
   const href = variant === 'dashboard' 
     ? `/dashboard/surveys/${id}` 
-    : `/survey/${id}`;
+    : `/survey/${id}?title=${encodeURIComponent(title.replace(/\s+/g, '-').toLowerCase())}`;
     
   return (
     <Link href={href} className="block h-full">

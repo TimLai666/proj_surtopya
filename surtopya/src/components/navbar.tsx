@@ -21,7 +21,6 @@ export function Navbar() {
   ];
 
   const authItems = [
-    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Create", href: "/create", icon: PlusCircle },
   ];
 

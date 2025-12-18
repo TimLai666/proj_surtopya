@@ -8,7 +8,7 @@ import { Toolbox } from "./toolbox";
 import { Canvas } from "./canvas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Save, Eye, Palette, Layout, Split, ArrowLeft, Settings, Send } from "lucide-react";
+import { Save, Eye, Palette, Layout, Split, ArrowLeft, Settings, Send, History as HistoryIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { nanoid } from "nanoid";
 import { ThemeEditor } from "./theme-editor";
@@ -55,7 +55,32 @@ export function SurveyBuilder() {
   const [viewMode, setViewMode] = useState<'builder' | 'settings'>('builder');
   const [description, setDescription] = useState("");
   const [pointsReward, setPointsReward] = useState(0);
+
+
   const [isPublic, setIsPublic] = useState(true);
+  const [isPublished, setIsPublished] = useState(false);
+  const [hasUnpublishedChanges, setHasUnpublishedChanges] = useState(false);
+
+  const notifyChange = () => {
+      setIsDirty(true);
+      setHasUnpublishedChanges(true);
+  };
+
+  // Settings Draft State (for cancel/unsaved changes)
+  const [settingsDraft, setSettingsDraft] = useState<{
+      title: string;
+      description: string;
+      pointsReward: number;
+      isPublic: boolean;
+  } | null>(null);
+  const [confirmSettingsExit, setConfirmSettingsExit] = useState(false);
+
+  const hasUnsavedSettings = settingsDraft ? (
+      settingsDraft.title !== title || 
+      settingsDraft.description !== description || 
+      settingsDraft.pointsReward !== pointsReward || 
+      settingsDraft.isPublic !== isPublic
+  ) : false;
 
   React.useEffect(() => {
     setMounted(true);
@@ -211,7 +236,7 @@ export function SurveyBuilder() {
           // What if dropped "before" Page 1 but no placeholder?
           // We'll just append to end to be safe.
           setQuestions([...cleanQuestions, newQuestion]);
-          setIsDirty(true);
+          notifyChange();
       }
     } 
     // Reordering existing items
@@ -283,7 +308,7 @@ export function SurveyBuilder() {
         
         return newItems;
       });
-      setIsDirty(true);
+      notifyChange();
     } else {
         // If dropped on self or no change, just ensure placeholder is gone
         setQuestions(cleanQuestions);
@@ -295,7 +320,7 @@ export function SurveyBuilder() {
 
   const updateQuestion = (id: string, updates: Partial<Question>) => {
     setQuestions(questions.map(q => q.id === id ? { ...q, ...updates } : q));
-    setIsDirty(true);
+    notifyChange();
   };
 
   const deleteQuestion = (id: string) => {
@@ -327,7 +352,7 @@ export function SurveyBuilder() {
             setQuestions(questions.filter(q => q.id !== deletingQuestionId));
         }
         
-        setIsDirty(true);
+        notifyChange();
         setDeletingQuestionId(null);
     }
   };
@@ -348,7 +373,7 @@ export function SurveyBuilder() {
     newQuestions.splice(index + 1, 0, newQuestion);
     
     setQuestions(newQuestions);
-    setIsDirty(true);
+    notifyChange();
   };
 
   const openLogicEditor = (id: string) => {
@@ -371,7 +396,7 @@ export function SurveyBuilder() {
         points: 0,
     };
     setQuestions([...questions, newSection]);
-    setIsDirty(true);
+    notifyChange();
   };
 
   // Validate logic jumps - returns warning message if invalid, null if valid
@@ -434,12 +459,52 @@ export function SurveyBuilder() {
           <div className="h-6 w-px bg-gray-200 dark:bg-gray-800" />
           <Input 
             value={title} 
-            onChange={(e) => setTitle(e.target.value)} 
+            onChange={(e) => { setTitle(e.target.value); notifyChange(); }}
             className="text-lg font-bold border-transparent hover:border-gray-200 focus:border-purple-500 w-[300px]"
           />
+          <div className="flex items-center gap-2 text-xs font-medium">
+             {isDirty ? (
+                 <span className="text-amber-500 flex items-center bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                     <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5" />
+                     Unsaved changes
+                 </span>
+             ) : (
+                 <span className="text-emerald-600 flex items-center bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5" />
+                     Saved
+                 </span>
+             )}
+             {isPublished && (
+                 hasUnpublishedChanges ? (
+                    <span className="text-gray-500 flex items-center bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200" title="The published version is older than your current draft">
+                        <HistoryIcon className="w-3 h-3 mr-1" />
+                        Published (Old)
+                    </span>
+                 ) : (
+                    <span className="text-purple-600 flex items-center bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+                        <Send className="w-3 h-3 mr-1" />
+                        Published
+                    </span>
+                 )
+             )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setViewMode(viewMode === 'builder' ? 'settings' : 'builder')}>
+          <Button variant="outline" size="sm" onClick={() => {
+              if (viewMode === 'builder') {
+                  // Enter settings mode - init draft
+                  setSettingsDraft({ title, description, pointsReward, isPublic });
+                  setViewMode('settings');
+              } else {
+                  // Try to exit settings mode - check for changes
+                  const hasChanges = JSON.stringify(settingsDraft) !== JSON.stringify({ title, description, pointsReward, isPublic });
+                  if (hasChanges) {
+                      setConfirmSettingsExit(true);
+                  } else {
+                      setViewMode('builder');
+                  }
+              }
+          }}>
             {viewMode === 'builder' ? (
                 <>
                     <Settings className="mr-2 h-4 w-4" />
@@ -452,23 +517,31 @@ export function SurveyBuilder() {
                 </>
             )}
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setActiveSidebar(activeSidebar === 'theme' ? 'toolbox' : 'theme')}>
-            <Palette className="mr-2 h-4 w-4" />
-            Theme
-          </Button>
+          {viewMode === 'builder' && (
+            <Button variant="outline" size="sm" onClick={() => setActiveSidebar(activeSidebar === 'theme' ? 'toolbox' : 'theme')}>
+                <Palette className="mr-2 h-4 w-4" />
+                Theme
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={openPreview}>
             <Eye className="mr-2 h-4 w-4" />
             Preview
           </Button>
-          <Button variant="outline" size="sm" onClick={addPage}>
-            <Split className="mr-2 h-4 w-4" />
-            Add Page
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setIsDirty(false)}>
+          {viewMode === 'builder' && (
+            <Button variant="outline" size="sm" onClick={addPage}>
+                <Split className="mr-2 h-4 w-4" />
+                Add Page
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={() => {
+              notifyChange();
+              // In a real app this would save to backend
+              setTimeout(() => setIsDirty(false), 500);
+            }}>
             <Save className="mr-2 h-4 w-4" />
             Save Draft
           </Button>
-          <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => { setIsDirty(false); alert('Survey published!'); }}>
+          <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => { setIsDirty(false); setIsPublished(true); setHasUnpublishedChanges(false); alert('Survey published!'); }}>
             <Send className="mr-2 h-4 w-4" />
             Publish
           </Button>
@@ -485,11 +558,10 @@ export function SurveyBuilder() {
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Survey Title</label>
                             <Input 
-                                value={title} 
-                                onChange={(e) => { setTitle(e.target.value); setIsDirty(true); }}
-                                placeholder="Enter survey title"
-                            />
-                        </div>
+                            value={settingsDraft?.title || ''} 
+                            onChange={(e) => setSettingsDraft(prev => prev ? ({ ...prev, title: e.target.value }) : null)}
+                            placeholder="Enter survey title"
+                        />    </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Description</label>
                             <div className="border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden">
@@ -502,11 +574,10 @@ export function SurveyBuilder() {
                                             const start = textarea.selectionStart;
                                             const end = textarea.selectionEnd;
                                             const text = textarea.value;
-                                            const selected = text.substring(start, end);
-                                            const newText = text.substring(0, start) + '**' + selected + '**' + text.substring(end);
-                                            setDescription(newText);
-                                            setIsDirty(true);
-                                        }}
+                                        const selected = text.substring(start, end);
+                                        const newText = text.substring(0, start) + '**' + selected + '**' + text.substring(end);
+                                        setSettingsDraft(prev => prev ? ({ ...prev, description: newText }) : null);
+                                    }}    
                                         className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
                                         title="Bold"
                                     >
@@ -519,11 +590,10 @@ export function SurveyBuilder() {
                                             const start = textarea.selectionStart;
                                             const end = textarea.selectionEnd;
                                             const text = textarea.value;
-                                            const selected = text.substring(start, end);
-                                            const newText = text.substring(0, start) + '_' + selected + '_' + text.substring(end);
-                                            setDescription(newText);
-                                            setIsDirty(true);
-                                        }}
+                                        const selected = text.substring(start, end);
+                                        const newText = text.substring(0, start) + '_' + selected + '_' + text.substring(end);
+                                        setSettingsDraft(prev => prev ? ({ ...prev, description: newText }) : null);
+                                    }}    
                                         className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
                                         title="Italic"
                                     >
@@ -539,11 +609,10 @@ export function SurveyBuilder() {
                                             const selected = text.substring(start, end);
                                             const url = prompt('Enter URL:', 'https://');
                                             if (url) {
-                                                const newText = text.substring(0, start) + '[' + (selected || 'link text') + '](' + url + ')' + text.substring(end);
-                                                setDescription(newText);
-                                                setIsDirty(true);
-                                            }
-                                        }}
+                                            const newText = text.substring(0, start) + '[' + (selected || 'link text') + '](' + url + ')' + text.substring(end);
+                                            setSettingsDraft(prev => prev ? ({ ...prev, description: newText }) : null);
+                                        }
+                                    }}    
                                         className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
                                         title="Add Link"
                                     >
@@ -556,10 +625,9 @@ export function SurveyBuilder() {
                                             const textarea = document.getElementById('description-textarea') as HTMLTextAreaElement;
                                             const start = textarea.selectionStart;
                                             const text = textarea.value;
-                                            const newText = text.substring(0, start) + '\n- ' + text.substring(start);
-                                            setDescription(newText);
-                                            setIsDirty(true);
-                                        }}
+                                        const newText = text.substring(0, start) + '\n- ' + text.substring(start);
+                                        setSettingsDraft(prev => prev ? ({ ...prev, description: newText }) : null);
+                                    }}    
                                         className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
                                         title="Bullet List"
                                     >
@@ -569,9 +637,9 @@ export function SurveyBuilder() {
                                 {/* Textarea */}
                                 <textarea 
                                     id="description-textarea"
-                                    value={description} 
-                                    onChange={(e) => { setDescription(e.target.value); setIsDirty(true); }}
-                                    placeholder="Describe what this survey is about..."
+                                value={settingsDraft?.description || ''} 
+                                onChange={(e) => setSettingsDraft(prev => prev ? ({ ...prev, description: e.target.value }) : null)}
+                                placeholder="Describe what this survey is about..."
                                     className="w-full min-h-[100px] bg-transparent px-3 py-2 text-sm placeholder:text-gray-500 focus:outline-none resize-none"
                                 />
                             </div>
@@ -582,9 +650,9 @@ export function SurveyBuilder() {
                                 <label className="text-sm font-medium">Points Reward</label>
                                 <Input 
                                     type="number" 
-                                    value={pointsReward} 
-                                    onChange={(e) => { setPointsReward(Number(e.target.value)); setIsDirty(true); }}
-                                    min={0}
+                                value={settingsDraft?.pointsReward || 0} 
+                                onChange={(e) => setSettingsDraft(prev => prev ? ({ ...prev, pointsReward: Number(e.target.value) }) : null)}
+                                min={0}
                                 />
                                 <p className="text-xs text-gray-500">Points awarded to respondents</p>
                             </div>
@@ -592,24 +660,37 @@ export function SurveyBuilder() {
                                 <label className="text-sm font-medium">Visibility</label>
                                 <div className="flex items-center gap-3 pt-2">
                                     <button
-                                        onClick={() => { setIsPublic(true); setIsDirty(true); }}
-                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${isPublic ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
-                                    >
-                                        Public
-                                    </button>
-                                    <button
-                                        onClick={() => { setIsPublic(false); setIsDirty(true); }}
-                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${!isPublic ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
-                                    >
-                                        Private
+                                        onClick={() => setSettingsDraft(prev => prev ? ({ ...prev, isPublic: true }) : null)}
+                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${settingsDraft?.isPublic ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
+                                >
+                                    Public
+                                </button>
+                                <button
+                                    onClick={() => setSettingsDraft(prev => prev ? ({ ...prev, isPublic: false }) : null)}
+                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${!settingsDraft?.isPublic ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
+                                >
+                                    Private
                                     </button>
                                 </div>
                             </div>
                         </div>
                         
-                        <div className="pt-6 border-t border-gray-200 dark:border-gray-800 text-right">
-                             <Button onClick={() => setViewMode('builder')} className="bg-purple-600 hover:bg-purple-700 text-white">
-                                Back to Canvas
+                        <div className="pt-6 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-3">
+                             <Button variant="ghost" onClick={() => setViewMode('builder')} className="text-gray-500 hover:text-gray-700">
+                                Cancel
+                             </Button>
+                             <Button 
+                                disabled={!hasUnsavedSettings}
+                                onClick={() => {
+                                 if (settingsDraft) {
+                                     setTitle(settingsDraft.title);
+                                     setDescription(settingsDraft.description);
+                                     setPointsReward(settingsDraft.pointsReward);
+                                     setIsPublic(settingsDraft.isPublic);
+                                     notifyChange();
+                                 }
+                             }} className={hasUnsavedSettings ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 text-gray-500 hover:bg-gray-200"}>
+                                {hasUnsavedSettings ? 'Save' : 'Saved'}
                              </Button>
                         </div>
                     </div>
@@ -642,7 +723,7 @@ export function SurveyBuilder() {
                     ) : (
                         <ThemeEditor theme={theme} onUpdate={(updates) => {
                             setTheme({ ...theme, ...updates });
-                            setIsDirty(true);
+                            notifyChange();
                         }} />
                     )}
                   </aside>
@@ -670,7 +751,10 @@ export function SurveyBuilder() {
                       >
                         <Canvas 
                           questions={questions} 
-                          onUpdate={updateQuestion} 
+                          onUpdate={(id, updates) => {
+                              updateQuestion(id, updates);
+                              notifyChange();
+                          }} 
                           onDelete={deleteQuestion} 
                           onDuplicate={duplicateQuestion}
                           onOpenLogic={openLogicEditor}
@@ -688,7 +772,12 @@ export function SurveyBuilder() {
                         allQuestions={questions}
                         open={logicEditorOpen}
                         onOpenChange={setLogicEditorOpen}
-                        onSave={saveLogic}
+                        onSave={(logic) => {
+                            if (activeLogicQuestionId) {
+                                saveLogic(logic);
+                                notifyChange();
+                            }
+                        }}
                     />
                 )}
 
