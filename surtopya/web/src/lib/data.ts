@@ -78,6 +78,9 @@ export const MOCK_SURVEYS: Record<string, MockSurveyData> = {
         ],
         settings: {
             isPublic: true,
+            isPublished: true,
+            visibility: 'public',
+            isDatasetActive: true,
             pointsReward: 50,
         },
         estimatedTime: "2-3 min",
@@ -94,6 +97,9 @@ export const MOCK_SURVEYS: Record<string, MockSurveyData> = {
         ],
         settings: {
             isPublic: true,
+            isPublished: true,
+            visibility: 'public',
+            isDatasetActive: true,
             pointsReward: 75,
         },
         estimatedTime: "5 min",
@@ -105,7 +111,13 @@ export const MOCK_SURVEYS: Record<string, MockSurveyData> = {
         title: "Preview Survey",
         description: "",
         questions: [],
-        settings: { isPublic: true, pointsReward: 0 },
+        settings: {
+            isPublic: true,
+            isPublished: false,
+            visibility: 'non-public',
+            isDatasetActive: false,
+            pointsReward: 0
+        },
         estimatedTime: "N/A",
         responseCount: 0,
         creator: "You",

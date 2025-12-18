@@ -1,0 +1,34 @@
+{
+  "Common": {
+    "loading": "載入中...",
+    "error": "發生錯誤",
+    "back": "返回",
+    "save": "儲存",
+    "cancel": "取消"
+  },
+  "Navigation": {
+    "dashboard": "儀表板",
+    "marketplace": "數據集市場",
+    "surveys": "我的問卷",
+    "create": "建立問卷"
+  },
+  "Datasets": {
+    "title": "數據集市場",
+    "description": "探索並存取高品質的去識別化數據集，助力您的研究與開發。",
+    "searchPlaceholder": "搜尋數據集...",
+    "allCategories": "所有類別",
+    "sortBy": "排序方式",
+    "newest": "最新上架",
+    "mostSamples": "樣本最多",
+    "freeAccess": "免費存取",
+    "paidAccess": "付費存取",
+    "download": "下載",
+    "queryApi": "API 查詢",
+    "overview": "概覽",
+    "dataPreview": "數據預覽",
+    "apiDocs": "API 文件",
+    "metadata": "元數據",
+    "about": "關於此數據集",
+    "keyColumns": "重要欄位"
+  }
+}

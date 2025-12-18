@@ -30,15 +30,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function Navbar() {
   const pathname = usePathname();
-  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
-  // Mock Auth State - Replace with Logto hook later
+  // Mock Auth State
   const isAuthenticated = true; 
   const user = {
     name: "Tim Lai",
     email: "tim@example.com",
-    avatar: "" // Placeholder
+    avatar: "" 
   };
 
   const navItems = [
@@ -55,7 +54,6 @@ export function Navbar() {
   const allItems = isAuthenticated ? [...navItems, ...authItems] : navItems;
 
   const handleLogout = () => {
-    // Logic for logout
     console.log("Logging out...");
   };
 
@@ -87,67 +85,69 @@ export function Navbar() {
             </Link>
           ))}
           
-          {isAuthenticated ? (
-            <div className="flex items-center gap-4 ml-4">
-               <Button asChild variant="ghost" className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400">
-                 <Link href="/create">Create</Link>
-               </Button>
-               
-               <DropdownMenu>
-                 <DropdownMenuTrigger asChild>
-                   <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0 overflow-hidden hover:bg-transparent">
-                     <Avatar className="h-9 w-9 ring-2 ring-transparent hover:ring-purple-500 transition-all">
-                       <AvatarImage src={user.avatar} alt={user.name} />
-                       <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-semibold">
-                         {user.name.charAt(0)}
-                       </AvatarFallback>
-                     </Avatar>
-                   </Button>
-                 </DropdownMenuTrigger>
-                 <DropdownMenuContent className="w-56 mt-1 animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2" align="end" sideOffset={8} alignOffset={-4} forceMount>
-                   <DropdownMenuLabel className="font-normal px-4 py-3 border-b dark:border-gray-800">
-                     <div className="flex flex-col space-y-1 py-1">
-                       <p className="text-sm font-semibold leading-none">{user.name}</p>
-                       <p className="text-xs leading-none text-muted-foreground">
-                         {user.email}
-                       </p>
-                     </div>
-                   </DropdownMenuLabel>
-                   <DropdownMenuSeparator />
-                   <DropdownMenuGroup>
-                     <DropdownMenuItem asChild>
-                       <Link href="/dashboard" className="flex w-full items-center cursor-pointer">
-                         <LayoutDashboard className="mr-2 h-4 w-4" />
-                         <span>Dashboard</span>
-                       </Link>
+          <div className="flex items-center gap-4 ml-4">
+             {isAuthenticated ? (
+               <>
+                 <Button asChild variant="ghost" className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400">
+                   <Link href="/create">Create</Link>
+                 </Button>
+                 
+                 <DropdownMenu>
+                   <DropdownMenuTrigger asChild>
+                     <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0 overflow-hidden hover:bg-transparent">
+                       <Avatar className="h-9 w-9 ring-2 ring-transparent hover:ring-purple-500 transition-all">
+                         <AvatarImage src={user.avatar} alt={user.name} />
+                         <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-semibold">
+                           {user.name.charAt(0)}
+                         </AvatarFallback>
+                       </Avatar>
+                     </Button>
+                   </DropdownMenuTrigger>
+                   <DropdownMenuContent className="w-56 mt-1 animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2" align="end" sideOffset={8} alignOffset={-4} forceMount>
+                     <DropdownMenuLabel className="font-normal px-4 py-3 border-b dark:border-gray-800">
+                       <div className="flex flex-col space-y-1 py-1">
+                         <p className="text-sm font-semibold leading-none">{user.name}</p>
+                         <p className="text-xs leading-none text-muted-foreground">
+                           {user.email}
+                         </p>
+                       </div>
+                     </DropdownMenuLabel>
+                     <DropdownMenuSeparator />
+                     <DropdownMenuGroup>
+                       <DropdownMenuItem asChild>
+                         <Link href="/dashboard" className="flex w-full items-center cursor-pointer">
+                           <LayoutDashboard className="mr-2 h-4 w-4" />
+                           <span>Dashboard</span>
+                         </Link>
+                       </DropdownMenuItem>
+                       <DropdownMenuItem asChild>
+                         <Link href="/dashboard/profile" className="flex w-full items-center cursor-pointer">
+                           <User className="mr-2 h-4 w-4" />
+                           <span>Profile</span>
+                         </Link>
+                       </DropdownMenuItem>
+                       <DropdownMenuItem asChild>
+                         <Link href="/dashboard/settings" className="flex w-full items-center cursor-pointer">
+                           <Settings className="mr-2 h-4 w-4" />
+                           <span>Settings</span>
+                         </Link>
+                       </DropdownMenuItem>
+                     </DropdownMenuGroup>
+                     <DropdownMenuSeparator />
+                     <DropdownMenuItem className="text-red-600 focus:text-red-700 focus:bg-red-50 dark:focus:bg-red-950/20 cursor-pointer" onClick={handleLogout}>
+                       <LogOut className="mr-2 h-4 w-4" />
+                       <span>Log out</span>
                      </DropdownMenuItem>
-                     <DropdownMenuItem asChild>
-                       <Link href="/dashboard/profile" className="flex w-full items-center cursor-pointer">
-                         <User className="mr-2 h-4 w-4" />
-                         <span>Profile</span>
-                       </Link>
-                     </DropdownMenuItem>
-                     <DropdownMenuItem asChild>
-                       <Link href="/dashboard/settings" className="flex w-full items-center cursor-pointer">
-                         <Settings className="mr-2 h-4 w-4" />
-                         <span>Settings</span>
-                       </Link>
-                     </DropdownMenuItem>
-                   </DropdownMenuGroup>
-                   <DropdownMenuSeparator />
-                   <DropdownMenuItem className="text-red-600 focus:text-red-700 focus:bg-red-50 dark:focus:bg-red-950/20 cursor-pointer" onClick={handleLogout}>
-                     <LogOut className="mr-2 h-4 w-4" />
-                     <span>Log out</span>
-                   </DropdownMenuItem>
-                 </DropdownMenuContent>
-               </DropdownMenu>
-            </div>
-          ) : (
-            <div className="flex items-center gap-4 ml-4">
-              <Button variant="ghost" size="sm">Sign In</Button>
-              <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-500/20">Get Started</Button>
-            </div>
-          )}
+                   </DropdownMenuContent>
+                 </DropdownMenu>
+               </>
+             ) : (
+               <>
+                 <Button variant="ghost" size="sm">Sign In</Button>
+                 <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-500/20">Get Started</Button>
+               </>
+             )}
+          </div>
         </div>
 
         {/* Mobile Menu Toggle */}

@@ -47,13 +47,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  const isNonPublic = survey.settings?.visibility === 'non-public';
+
   return {
     title: `${survey.title} | Surtopya`,
-    description: survey.description, // User requested description in meta tag
+    description: survey.description,
+    robots: isNonPublic ? {
+      index: false,
+      follow: true,
+    } : undefined,
     openGraph: {
       title: survey.title,
       description: survey.description,
-      type: "article", // or website
+      type: "article",
     },
   };
 }

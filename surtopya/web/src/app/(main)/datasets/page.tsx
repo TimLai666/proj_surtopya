@@ -18,7 +18,7 @@ function DatasetsContent() {
 
   // Initialize state from URL params
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
-  const [activeCategory, setActiveCategory] = useState(searchParams.get("category") || "All Categories");
+  const [activeCategory, setActiveCategory] = useState(searchParams.get("category") || "所有類別");
   const [sortBy, setSortBy] = useState<"newest" | "downloads" | "samples">((searchParams.get("sort") as any) || "newest");
   const [visibleCount, setVisibleCount] = useState(6);
 
@@ -29,7 +29,7 @@ function DatasetsContent() {
     // Build new params
     const newParams = new URLSearchParams();
     if (searchTerm) newParams.set("q", searchTerm);
-    if (activeCategory !== "All Categories") newParams.set("category", activeCategory);
+    if (activeCategory !== "所有類別") newParams.set("category", activeCategory);
     if (sortBy !== "newest") newParams.set("sort", sortBy);
     
     const newQuery = newParams.toString();
@@ -47,7 +47,7 @@ function DatasetsContent() {
     .filter(ds => {
       const matchesSearch = ds.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                            ds.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = activeCategory === "All Categories" || ds.category === activeCategory;
+      const matchesCategory = activeCategory === "所有類別" || ds.category === activeCategory;
       return matchesSearch && matchesCategory;
     })
     .sort((a, b) => {
@@ -66,22 +66,22 @@ function DatasetsContent() {
         <div className="container px-4 md:px-6">
           <div className="max-w-3xl space-y-4">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-              The <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">Datasets</span> Marketplace
+              探索 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">數據市集</span>
             </h1>
             <p className="text-xl text-gray-400">
-              Access high-quality, de-identified survey data for your research, AI training, and business intelligence.
+              訪問全球研究人員共享的高質量、去識別化數據集。
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <Button className="bg-white text-black hover:bg-gray-100 font-semibold shadow-xl shadow-white/5 transition-all" onClick={() => {
                 document.getElementById('dataset-list')?.scrollIntoView({ behavior: 'smooth' });
               }}>
-                <Database className="mr-2 h-4 w-4" /> Browse All Data
+                <Database className="mr-2 h-4 w-4" /> 瀏覽所有類別
               </Button>
               <Button 
                 variant="outline" 
                 className="border-white/20 bg-white/5 text-white hover:bg-white/20 hover:text-white backdrop-blur-sm shadow-xl transition-all"
               >
-                <FileText className="mr-2 h-4 w-4 text-purple-400" /> API Documentation
+                <FileText className="mr-2 h-4 w-4 text-purple-400" /> API 文件
               </Button>
             </div>
           </div>
@@ -95,11 +95,11 @@ function DatasetsContent() {
           {/* Sidebar Filters */}
           <aside className="w-full md:w-64 space-y-8">
             <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-4">Search</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-4">搜尋</h3>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input 
-                  placeholder="Find datasets..." 
+                  placeholder="搜尋數據集..." 
                   className="pl-10"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -108,9 +108,9 @@ function DatasetsContent() {
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-4">Categories</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-4">類別</h3>
               <div className="space-y-2">
-                {["All Categories", "Market Research", "Social Science", "Consumer Goods", "Technology", "Healthcare", "Finance"].map((cat) => (
+                {["所有類別", "市場調查", "社會科學", "消費品", "科技", "醫療保健", "金融"].map((cat) => (
                   <Button 
                     key={cat} 
                     variant={activeCategory === cat ? "secondary" : "ghost"} 
@@ -125,10 +125,10 @@ function DatasetsContent() {
 
             <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800">
               <h4 className="font-bold text-purple-900 dark:text-purple-300 flex items-center gap-2">
-                <Globe className="h-4 w-4" /> Open Data Initiative
+                <Globe className="h-4 w-4" /> 開放數據倡議
               </h4>
               <p className="text-xs text-purple-700 dark:text-purple-400 mt-2 leading-relaxed">
-                All datasets are automatically de-identified using our proprietary privacy engine to protect participant identity.
+                所有數據集均使用我們的專利隱私引擎進行去識別化處理，以保護參與者身份。
               </p>
             </div>
           </aside>
@@ -137,18 +137,18 @@ function DatasetsContent() {
           <div className="flex-1 space-y-6">
             <div className="flex items-center justify-between pb-4">
               <div className="text-sm text-gray-500">
-                Showing <span className="font-bold text-gray-900 dark:text-gray-100">{displayDatasets.length}</span> of {filteredDatasets.length} datasets
+                顯示 <span className="font-bold text-gray-900 dark:text-gray-100">{displayDatasets.length}</span> / {filteredDatasets.length} 個數據集
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400 uppercase font-medium">Sort by:</span>
+                <span className="text-xs text-gray-400 uppercase font-medium">排序依據:</span>
                 <select 
                   className="bg-transparent border-none text-sm font-medium focus:ring-0 cursor-pointer"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
                 >
-                  <option value="newest">Newest</option>
-                  <option value="downloads">Most Downloads</option>
-                  <option value="samples">Sample Size</option>
+                  <option value="newest">最新上架</option>
+                  <option value="downloads">最多下載</option>
+                  <option value="samples">最多樣本</option>
                 </select>
               </div>
             </div>
@@ -192,13 +192,13 @@ function DatasetsContent() {
                           <span>Format: {ds.format}</span>
                         </div>
                         <div className="md:ml-auto">
-                          Updated {ds.lastUpdated}
+                          更新於 {ds.lastUpdated}
                         </div>
                       </div>
                     </CardContent>
                     <CardFooter className="bg-gray-50 dark:bg-gray-900/50 py-3 border-t dark:border-gray-800">
                       <div className="flex items-center gap-4 text-xs font-medium uppercase tracking-wider text-purple-600">
-                         <span>View Details</span>
+                         <span>查看詳情</span>
                          {ds.apiAvailable && <span>• API Access Active</span>}
                       </div>
                     </CardFooter>
@@ -214,7 +214,7 @@ function DatasetsContent() {
                   className="text-gray-500 hover:text-purple-600"
                   onClick={() => setVisibleCount(prev => prev + 6)}
                 >
-                  Load More Datasets
+                  載入更多數據集
                 </Button>
               </div>
             )}

@@ -9,7 +9,7 @@ import { Canvas } from "./canvas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Save, Eye, Palette, Layout, Split, ArrowLeft, Settings, Send, History as HistoryIcon, Database, AlertTriangle } from "lucide-react";
+import { Save, Eye, Palette, Layout, Split, ArrowLeft, Settings, Send, History as HistoryIcon, Database, AlertTriangle, Globe, Lock } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
 import { nanoid } from "nanoid";
@@ -57,6 +57,9 @@ export function SurveyBuilder() {
   const [viewMode, setViewMode] = useState<'builder' | 'settings'>('builder');
   const [description, setDescription] = useState("");
   const [pointsReward, setPointsReward] = useState(0);
+
+  // Consent Modal State
+  const [consentGiven, setConsentGiven] = useState(false);
 
 
   const [isPublic, setIsPublic] = useState(true);
@@ -452,6 +455,56 @@ export function SurveyBuilder() {
 
   if (!mounted) return null;
 
+  if (!consentGiven) {
+    return (
+      <Dialog open={true} onOpenChange={(open) => { if (!open) router.push('/dashboard'); }}>
+        <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Database className="h-5 w-5 text-purple-600" />
+              Data Usage Consent
+            </DialogTitle>
+            <DialogDescription className="text-base pt-2">
+              Before you start building, please note how your survey data will be used:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex gap-3">
+              <div className="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
+                <Layout className="h-4 w-4 text-purple-600" />
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <strong>De-identification:</strong> All survey responses are automatically de-identified to protect participant privacy.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+                <Globe className="h-4 w-4 text-blue-600" />
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <strong>Marketplace:</strong> By default, de-identified datasets are contributed to our Open Marketplace to keep Surtopya free.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+                <Lock className="h-4 w-4 text-amber-600" />
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <strong>Paid Opt-out:</strong> Pro users can opt-out of data sharing for non-public surveys.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => router.push('/dashboard')}>Cancel</Button>
+            <Button className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => setConsentGiven(true)}>
+              I Understand and Agree
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-950">
       {/* Header */}
@@ -677,13 +730,13 @@ export function SurveyBuilder() {
                             <label className="text-sm font-medium">Visibility</label>
                             <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-lg w-fit">
                                 <button
-                                    onClick={() => setSettingsDraft(prev => prev ? ({ ...prev, isPublic: true }) : null)}
+                                    onClick={() => setSettingsDraft(prev => prev ? ({ ...prev, isPublic: true, includeInDatasets: true }) : null)}
                                     className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${settingsDraft?.isPublic ? 'bg-white dark:bg-gray-700 shadow-sm text-purple-600' : 'text-gray-500'}`}
                                 >
                                     Public
                                 </button>
                                 <button
-                                    onClick={() => setSettingsDraft(prev => prev ? ({ ...prev, isPublic: false }) : null)}
+                                    onClick={() => setSettingsDraft(prev => prev ? ({ ...prev, isPublic: false, includeInDatasets: false }) : null)}
                                     className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${!settingsDraft?.isPublic ? 'bg-white dark:bg-gray-700 shadow-sm text-purple-600' : 'text-gray-500'}`}
                                 >
                                     Non-public
