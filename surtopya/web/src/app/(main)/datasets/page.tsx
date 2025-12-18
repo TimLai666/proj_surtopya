@@ -69,7 +69,7 @@ function DatasetsContent() {
               探索 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">數據市集</span>
             </h1>
             <p className="text-xl text-gray-400">
-              訪問全球研究人員共享的高質量、去識別化數據集。
+              訪問全球研究人員共享的高品質、去識別化數據集。
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <Button className="bg-white text-black hover:bg-gray-100 font-semibold shadow-xl shadow-white/5 transition-all" onClick={() => {
