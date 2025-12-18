@@ -23,7 +23,8 @@ import {
   Users,
   MessageSquare,
   TrendingUp,
-  Calendar
+  Calendar,
+  Lock
 } from "lucide-react";
 
 // Mock Survey Data
@@ -43,7 +44,11 @@ const MOCK_MY_SURVEYS: Record<string, Survey & {
     ],
     settings: {
       isPublic: true,
+      isPublished: true,
+      visibility: 'public',
+      isDatasetActive: true,
       pointsReward: 25,
+      expiresAt: "2025-12-31"
     },
     responseCount: 156,
     createdAt: "2024-11-15",
@@ -63,6 +68,9 @@ const MOCK_MY_SURVEYS: Record<string, Survey & {
     ],
     settings: {
       isPublic: false,
+      isPublished: false,
+      visibility: 'non-public',
+      isDatasetActive: false,
       pointsReward: 50,
     },
     responseCount: 89,
@@ -111,11 +119,39 @@ export default function SurveyManagementPage() {
     router.push(`/create?edit=${surveyId}`);
   };
 
+  const handleTogglePublish = (status: boolean) => {
+    if (survey) {
+      setSurvey({
+        ...survey,
+        settings: {
+          ...survey.settings,
+          isPublished: status
+        }
+      });
+    }
+  };
+
   const handleCopyLink = () => {
     const link = `${window.location.origin}/survey/${surveyId}`;
-    navigator.clipboard.writeText(link);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } else {
+      // Fallback for older browsers or non-secure contexts
+      const textArea = document.createElement("textarea");
+      textArea.value = link;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Fallback copy failed', err);
+      }
+      document.body.removeChild(textArea);
+    }
   };
 
   if (loading) {
@@ -157,24 +193,25 @@ export default function SurveyManagementPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Badge className={survey.settings.isPublished ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300" : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"}>
+                {survey.settings.isPublished ? "Published" : "Draft"}
+              </Badge>
               <Button variant="outline" onClick={handlePreview}>
                 <Eye className="mr-2 h-4 w-4" />
                 Preview
               </Button>
-              <Button variant="outline" onClick={handleCopyLink}>
-                {copied ? (
-                  <>
-                    <Check className="mr-2 h-4 w-4 text-green-500" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Share2 className="mr-2 h-4 w-4" />
-                    Share
-                  </>
-                )}
-              </Button>
-              <Button onClick={handleEdit} className="bg-purple-600 hover:bg-purple-700 text-white">
+              {survey.settings.isPublished ? (
+                <Button variant="outline" className="text-amber-600 border-amber-200 hover:bg-amber-50" onClick={() => handleTogglePublish(false)}>
+                  <Lock className="mr-2 h-4 w-4" />
+                  Unpublish
+                </Button>
+              ) : (
+                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => handleTogglePublish(true)}>
+                  <Share2 className="mr-2 h-4 w-4" />
+                  Publish
+                </Button>
+              )}
+              <Button onClick={handleEdit} variant="outline" className="border-purple-200 text-purple-700 hover:bg-purple-50">
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit
               </Button>
@@ -274,19 +311,60 @@ export default function SurveyManagementPage() {
                     <CardDescription>Configure your survey options</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label htmlFor="public" className="text-base">Public Survey</Label>
-                        <p className="text-sm text-gray-500">Allow anyone with the link to respond</p>
+                    <div className="space-y-1">
+                      <Label className="text-base">Visibility</Label>
+                      <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-lg w-fit">
+                        <button 
+                          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${survey.settings.visibility === 'public' ? 'bg-white dark:bg-gray-700 shadow-sm' : 'text-gray-500'}`}
+                          onClick={() => setSurvey({...survey, settings: {...survey.settings, visibility: 'public'}})}
+                        >
+                          Public
+                        </button>
+                        <button 
+                          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${survey.settings.visibility === 'non-public' ? 'bg-white dark:bg-gray-700 shadow-sm' : 'text-gray-500'}`}
+                          onClick={() => setSurvey({...survey, settings: {...survey.settings, visibility: 'non-public'}})}
+                        >
+                          Non-public
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {survey.settings.visibility === 'public' 
+                          ? 'Visible in marketplace and searchable by search engines.' 
+                          : 'Hidden from marketplace and search engines. Only accessible via link.'}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-6">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="dataset" className="text-base">Dataset Marketplace Program</Label>
+                        <p className="text-xs text-gray-500">
+                          {survey.settings.visibility === 'public' 
+                            ? 'Public surveys are automatically enrolled. Opt-out requires Paid Membership.' 
+                            : 'Manually opt-in to share de-identified data in our marketplace.'}
+                        </p>
                       </div>
                       <Switch 
-                        id="public" 
-                        checked={isPublic} 
-                        onCheckedChange={setIsPublic}
+                        id="dataset" 
+                        checked={survey.settings.isDatasetActive} 
+                        disabled={survey.settings.visibility === 'public'} // Simplified for mock: assume opting out public survey needs paid (which we mock-disable here)
+                        onCheckedChange={(checked) => setSurvey({...survey, settings: {...survey.settings, isDatasetActive: checked}})}
                       />
                     </div>
+
+                    <div className="space-y-2 border-t border-gray-100 dark:border-gray-800 pt-6">
+                      <Label htmlFor="expires">Expiration Date</Label>
+                      <div className="flex gap-4 items-center">
+                        <Input 
+                          id="expires" 
+                          type="date" 
+                          defaultValue={survey.settings.expiresAt}
+                          className="max-w-[200px]"
+                        />
+                        <span className="text-xs text-gray-500 italic">Leaves blank for no expiration</span>
+                      </div>
+                    </div>
                     
-                    <div className="space-y-2">
+                    <div className="space-y-2 border-t border-gray-100 dark:border-gray-800 pt-6">
                       <Label htmlFor="points">Points Reward</Label>
                       <Input 
                         id="points" 

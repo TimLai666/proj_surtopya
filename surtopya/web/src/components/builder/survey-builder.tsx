@@ -8,6 +8,7 @@ import { Toolbox } from "./toolbox";
 import { Canvas } from "./canvas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Save, Eye, Palette, Layout, Split, ArrowLeft, Settings, Send, History as HistoryIcon, Database, AlertTriangle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
@@ -662,22 +663,37 @@ export function SurveyBuilder() {
                                 <p className="text-xs text-gray-500">Points awarded to respondents</p>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Visibility</label>
-                                <div className="flex items-center gap-3 pt-2">
-                                    <button
-                                        onClick={() => setSettingsDraft(prev => prev ? ({ ...prev, isPublic: true }) : null)}
-                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${settingsDraft?.isPublic ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
+                                <label className="text-sm font-medium">Expiration Date</label>
+                                <Input 
+                                    type="date" 
+                                    defaultValue=""
+                                    className="dark:bg-gray-800"
+                                />
+                                <p className="text-xs text-gray-500 italic">Optional</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Visibility</label>
+                            <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-lg w-fit">
+                                <button
+                                    onClick={() => setSettingsDraft(prev => prev ? ({ ...prev, isPublic: true }) : null)}
+                                    className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${settingsDraft?.isPublic ? 'bg-white dark:bg-gray-700 shadow-sm text-purple-600' : 'text-gray-500'}`}
                                 >
                                     Public
                                 </button>
                                 <button
                                     onClick={() => setSettingsDraft(prev => prev ? ({ ...prev, isPublic: false }) : null)}
-                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${!settingsDraft?.isPublic ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
+                                    className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${!settingsDraft?.isPublic ? 'bg-white dark:bg-gray-700 shadow-sm text-purple-600' : 'text-gray-500'}`}
                                 >
-                                    Private
-                                    </button>
-                                </div>
+                                    Non-public
+                                </button>
                             </div>
+                            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                                {settingsDraft?.isPublic 
+                                    ? 'Visible in marketplace and searchable by search engines.' 
+                                    : 'Hidden from marketplace and search engines. Only accessible via link.'}
+                            </p>
                         </div>
 
                         <Separator className="dark:bg-gray-800" />
@@ -687,34 +703,28 @@ export function SurveyBuilder() {
                                 <div className="space-y-0.5">
                                     <label className="text-sm font-bold flex items-center gap-2">
                                         <Database className="h-4 w-4 text-purple-600" />
-                                        Include in Dataset Program
+                                        Include de-identified data in Marketplace
                                     </label>
                                     <p className="text-xs text-gray-500 max-w-[400px]">
-                                        Automatically de-identify and contribute survey results to our data marketplace. 
-                                        Paid users can toggle this off per survey.
+                                        {settingsDraft?.isPublic 
+                                            ? 'Public surveys are automatically enrolled. Opt-out requires Paid Membership.' 
+                                            : 'Contribute de-identified results to our marketplace. (Manual Opt-in required for non-public surveys).'}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={() => setSettingsDraft(prev => prev ? ({ ...prev, includeInDatasets: true }) : null)}
-                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${settingsDraft?.includeInDatasets ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
-                                    >
-                                        Enable
-                                    </button>
-                                    <button
-                                        onClick={() => setSettingsDraft(prev => prev ? ({ ...prev, includeInDatasets: false }) : null)}
-                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${!settingsDraft?.includeInDatasets ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
-                                    >
-                                        Disable
-                                    </button>
+                                    <Switch 
+                                        checked={settingsDraft?.includeInDatasets}
+                                        disabled={settingsDraft?.isPublic} // Simplified: Public must opt-in unless paid (mock-disabled)
+                                        onCheckedChange={(checked: boolean) => setSettingsDraft(prev => prev ? ({ ...prev, includeInDatasets: checked }) : null)}
+                                    />
                                 </div>
                             </div>
-                            {!settingsDraft?.includeInDatasets && (
-                                <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 flex items-start gap-3">
-                                    <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5" />
-                                    <p className="text-xs text-amber-700 dark:text-amber-400">
-                                        Disabling this option requires a <strong>Pro Subscription</strong>. 
-                                        Open datasets help researchers and keep our basic plan free.
+                            {settingsDraft?.isPublic && (
+                                <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800 flex items-start gap-3">
+                                    <AlertTriangle className="h-4 w-4 text-purple-600 mt-0.5" />
+                                    <p className="text-xs text-purple-700 dark:text-purple-400">
+                                        <strong>Dataset Enrollment</strong> is mandatory for free users publishing <strong>Public</strong> surveys. 
+                                        Upgrade to Pro to publish public surveys without contributing data.
                                     </p>
                                 </div>
                             )}
@@ -734,9 +744,10 @@ export function SurveyBuilder() {
                                      setIsPublic(settingsDraft.isPublic);
                                      setIncludeInDatasets(settingsDraft.includeInDatasets);
                                      notifyChange();
+                                     setViewMode('builder');
                                  }
                              }} className={hasUnsavedSettings ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 text-gray-500 hover:bg-gray-200"}>
-                                {hasUnsavedSettings ? 'Save' : 'Saved'}
+                                Save Changes
                              </Button>
                         </div>
                     </div>

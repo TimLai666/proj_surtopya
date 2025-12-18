@@ -30,6 +30,10 @@ export interface Survey {
     theme?: SurveyTheme;
     settings: {
         isPublic: boolean;
+        isPublished: boolean;
+        visibility: 'public' | 'non-public';
+        isDatasetActive: boolean;
         pointsReward: number;
+        expiresAt?: string;
     };
 }

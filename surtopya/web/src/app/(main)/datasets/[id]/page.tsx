@@ -1,13 +1,47 @@
 "use client";
 
+import { useParams, useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Database, Download, Code, FileText, Info, BarChart, Globe, Terminal, Copy, ChevronLeft } from "lucide-react";
+import { Database, Download, Code, FileText, Info, BarChart, Globe, Terminal, Copy, ChevronLeft, Lock, ArrowRightLeft } from "lucide-react";
 import Link from "next/link";
+import { useState, useEffect, Suspense } from "react";
+import { MOCK_DATASETS } from "@/lib/datasets-data";
 
-export default function DatasetDetailPage() {
+function DatasetDetailContent() {
+  const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const id = params?.id as string;
+  
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
+  
+  const dataset = MOCK_DATASETS.find(ds => ds.id === id);
+
+  // Sync tab to URL
+  useEffect(() => {
+    const currentTab = searchParams.get("tab") || "overview";
+    if (activeTab !== currentTab) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("tab", activeTab);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    }
+  }, [activeTab, pathname, router, searchParams]);
+
+  if (!dataset) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <h2 className="text-2xl font-bold mb-4">Dataset Not Found</h2>
+        <Button asChild>
+          <Link href="/datasets">Return to Marketplace</Link>
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20">
       {/* Navigation */}
@@ -25,21 +59,21 @@ export default function DatasetDetailPage() {
           <div className="flex flex-col md:flex-row justify-between items-start gap-6">
             <div className="space-y-4 max-w-3xl">
               <div className="flex items-center gap-2">
-                <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">Market Research</Badge>
+                <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">{dataset.category}</Badge>
                 <Badge variant="outline">Ver. 2.0.4</Badge>
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">Global E-commerce Trends 2024</h1>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">{dataset.title}</h1>
               <p className="text-lg text-gray-500 dark:text-gray-400">
-                A comprehensive de-identified dataset capturing consumer behavior, platform preferences, and purchasing power across 15 major economies.
+                {dataset.description}
               </p>
               <div className="flex flex-wrap gap-6 text-sm">
                 <div className="flex items-center gap-2">
                   <Database className="h-4 w-4 text-purple-600" />
-                  <span className="font-bold">52,482</span> Samples
+                  <span className="font-bold">{dataset.sampleSize}</span> Samples
                 </div>
-                <div className="flex items-center gap-2 text-emerald-600">
-                  <Globe className="h-4 w-4" />
-                  Public Access
+                <div className={`flex items-center gap-2 ${dataset.isPublic ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  {dataset.isPublic ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                  {dataset.isPublic ? 'Free Access' : 'Paid Access'}
                 </div>
                 <div className="flex items-center gap-2">
                   <BarChart className="h-4 w-4 text-purple-600" />
@@ -48,11 +82,14 @@ export default function DatasetDetailPage() {
               </div>
             </div>
             <div className="flex flex-col gap-3 w-full md:w-auto">
-              <Button className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/20">
-                <Download className="mr-2 h-4 w-4" /> Download CSV (12.4 MB)
+              <Button className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/30 font-semibold h-11 px-8">
+                <Download className="mr-2 h-4 w-4" strokeWidth={2.5} /> Download {dataset.format.split(',')[0]}
               </Button>
-              <Button variant="outline">
-                <Terminal className="mr-2 h-4 w-4" /> Query API
+              <Button 
+                variant="outline" 
+                className="border-purple-200 dark:border-purple-900/50 bg-purple-50/50 dark:bg-purple-900/10 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/20 h-11 px-8"
+              >
+                <Terminal className="mr-2 h-4 w-4" strokeWidth={2.5} /> Query API
               </Button>
             </div>
           </div>
@@ -61,7 +98,7 @@ export default function DatasetDetailPage() {
 
       {/* Content Tabs */}
       <div className="container px-4 py-10 md:px-6">
-        <Tabs defaultValue="overview" className="space-y-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
           <TabsList className="bg-gray-100 dark:bg-gray-800 p-1 h-12">
             <TabsTrigger value="overview" className="px-6 h-10"><Info className="h-4 w-4 mr-2" /> Overview</TabsTrigger>
             <TabsTrigger value="data-preview" className="px-6 h-10"><FileText className="h-4 w-4 mr-2" /> Data Preview</TabsTrigger>
@@ -73,14 +110,16 @@ export default function DatasetDetailPage() {
               <div className="prose dark:prose-invert max-w-none">
                 <h3 className="text-xl font-bold">About this Dataset</h3>
                 <p>
-                  This dataset was generated through the Surtopya Open Data Program. It contains de-identified responses from multiple consumer surveys conducted between January and June 2024. All personally identifiable information (PII) such as names, emails, and precise locations has been removed or aggregated.
+                  {dataset.longDescription}
                 </p>
                 <h4 className="text-lg font-bold">Key Columns</h4>
-                <ul className="space-y-2">
-                  <li><strong>age_group</strong>: Categorical (18-24, 25-34, etc.)</li>
-                  <li><strong>primary_platform</strong>: Most used e-commerce platform</li>
-                  <li><strong>avg_monthly_spend</strong>: Numerical (USD equivalent)</li>
-                  <li><strong>satisfaction_score</strong>: Rating (1-5)</li>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 list-none pl-0">
+                  {dataset.columns.map((col, i) => (
+                    <li key={i} className="flex flex-col p-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+                      <strong className="text-purple-600 font-mono">{col.name}</strong>
+                      <span className="text-xs text-gray-500 mt-1">{col.type}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
@@ -96,11 +135,11 @@ export default function DatasetDetailPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">DOI</span>
-                    <span className="font-medium text-purple-600">10.5281/surtopya.ecommerce.24</span>
+                    <span className="font-medium text-purple-600">10.5281/surtopya.{id.replace('-', '.')}.24</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">File Format</span>
-                    <span className="font-medium">Tabular (CSV)</span>
+                    <span className="font-medium">{dataset.format}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -111,26 +150,26 @@ export default function DatasetDetailPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-6">
                 <div className="space-y-4">
-                  <h3 className="text-2xl font-bold">Go Dataset API</h3>
+                  <h3 className="text-2xl font-bold">Dataset API</h3>
                   <p className="text-gray-500">
-                    Consume this dataset programmatically via our high-performance Go-powered Gin API.
+                    Consume this dataset programmatically via our high-performance RESTful API.
                   </p>
                 </div>
 
-                <Card className="bg-black text-gray-300 border-gray-800">
+                <Card className="bg-black text-gray-300 border-gray-800 shadow-2xl">
                   <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900">
-                    <span className="text-xs font-mono uppercase text-gray-500">Endpoint: GET /v1/datasets/ds-1/query</span>
+                    <span className="text-xs font-mono uppercase text-gray-500">Endpoint: GET /v1/datasets/{id}/query</span>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
                   <CardContent className="p-6 font-mono text-sm overflow-x-auto">
-                    <pre>
-{`curl -X GET "https://api.surtopya.com/v1/datasets/ds-1/query" \\
+                    <pre className="text-emerald-500/90">
+{`curl -X GET "https://api.surtopya.com/v1/datasets/${id}/query" \\
      -H "Authorization: Bearer YOUR_API_KEY" \\
      -G \\
      --data-urlencode "limit=10" \\
-     --data-urlencode "filter=age_group:18-24"`}
+     --data-urlencode "filter=${dataset.columns[0]?.name}:value"`}
                     </pre>
                   </CardContent>
                 </Card>
@@ -141,11 +180,11 @@ export default function DatasetDetailPage() {
                     <CardContent className="p-6 font-mono text-sm overflow-x-auto text-purple-600 dark:text-purple-400">
                       <pre>
 {`import requests
-
-url = "https://api.surtopya.com/v1/datasets/ds-1/query"
+ 
+url = "https://api.surtopya.com/v1/datasets/${id}/query"
 params = {"limit": 100}
 response = requests.get(url, params=params)
-
+ 
 data = response.json()
 print(f"Retrieved {len(data['results'])} records.")`}
                       </pre>
@@ -159,10 +198,10 @@ print(f"Retrieved {len(data['results'])} records.")`}
                   <Terminal className="h-8 w-8 mb-4" />
                   <h4 className="font-bold text-lg">Direct Data Stream</h4>
                   <p className="text-sm text-blue-100 mt-2 leading-relaxed">
-                    Our Go backend supports streaming large JSON responses directly into your data pipeline. No timeouts for large exports.
+                    Our backend supports streaming large JSON responses directly into your data pipeline. No timeouts for large exports.
                   </p>
                   <Button variant="secondary" className="w-full mt-6 bg-white/20 hover:bg-white/30 text-white border-0">
-                    View Go API Source
+                    View API Reference
                   </Button>
                 </div>
               </aside>
@@ -170,44 +209,54 @@ print(f"Retrieved {len(data['results'])} records.")`}
           </TabsContent>
 
           <TabsContent value="data-preview">
-            <Card>
-              <CardContent className="p-0 overflow-x-auto">
-                <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                  <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-800 dark:text-gray-400">
-                    <tr>
-                      <th className="px-6 py-4">Respondent_ID</th>
-                      <th className="px-6 py-4">Age_Group</th>
-                      <th className="px-6 py-4">Country</th>
-                      <th className="px-6 py-4">Top_Platform</th>
-                      <th className="px-6 py-4">Spend_USD</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y dark:divide-gray-800">
-                    {[
-                      { id: "anon_01a", age: "18-24", country: "US", platform: "Amazon", spend: 450 },
-                      { id: "anon_02b", age: "25-34", country: "UK", platform: "eBay", spend: 280 },
-                      { id: "anon_03c", age: "18-24", country: "CA", platform: "Shopify", spend: 120 },
-                      { id: "anon_04d", age: "45-54", country: "DE", platform: "Amazon", spend: 1200 },
-                      { id: "anon_05e", age: "25-34", country: "JP", platform: "Rakuten", spend: 650 },
-                    ].map((row, i) => (
-                      <tr key={i} className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                        <td className="px-6 py-4 font-mono text-xs">{row.id}</td>
-                        <td className="px-6 py-4">{row.age}</td>
-                        <td className="px-6 py-4">{row.country}</td>
-                        <td className="px-6 py-4">{row.platform}</td>
-                        <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold">${row.spend}</td>
+            <div className="flex items-center gap-2 mb-4 text-xs text-gray-400 bg-gray-100 dark:bg-gray-800/50 w-fit px-3 py-1.5 rounded-full">
+              <ArrowRightLeft className="h-3 w-3" />
+              <span>Scroll horizontally to view all columns</span>
+            </div>
+            <Card className="border-0 shadow-xl overflow-hidden ring-1 ring-gray-200 dark:ring-gray-800">
+              <CardContent className="p-0">
+                <div className="overflow-x-auto custom-scrollbar">
+                  <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead className="text-xs text-gray-700 uppercase bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm sticky top-0 dark:text-gray-400">
+                      <tr>
+                        {Object.keys(dataset.sampleData[0]).map((key) => (
+                          <th key={key} className="px-6 py-4 whitespace-nowrap">{key.toUpperCase()}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y dark:divide-gray-800">
+                      {dataset.sampleData.map((row, i) => (
+                        <tr key={i} className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                          {Object.values(row).map((val, j) => (
+                            <td key={j} className={`px-6 py-4 whitespace-nowrap ${j === 0 ? 'font-mono text-xs text-purple-600' : ''} ${typeof val === 'number' ? 'text-gray-900 dark:text-gray-100 font-bold' : ''}`}>
+                              {typeof val === 'number' && j === Object.values(row).length - 1 ? `$${val}` : val}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </CardContent>
             </Card>
             <div className="mt-4 text-center text-xs text-gray-500">
-              Showing first 5 rows of 52,482 records.
+              Showing sample records for {dataset.title}.
             </div>
           </TabsContent>
         </Tabs>
       </div>
     </div>
+  );
+}
+
+export default function DatasetDetailPage() {
+  return (
+    <Suspense fallback={
+       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="animate-pulse text-purple-600 font-medium">Loading Dataset Details...</div>
+      </div>
+    }>
+      <DatasetDetailContent />
+    </Suspense>
   );
 }

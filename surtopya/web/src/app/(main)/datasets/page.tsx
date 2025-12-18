@@ -6,50 +6,58 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Database, Download, Search, Filter, ArrowUpDown, FileText, Globe, Lock } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
-// Mock Datasets
-const MOCK_DATASETS = [
-  {
-    id: "ds-1",
-    title: "Global E-commerce Trends 2024",
-    description: "De-identified survey data from 50,000+ respondents regarding online shopping habits across 15 countries.",
-    sampleSize: "52.4k",
-    format: "CSV, JSON",
-    lastUpdated: "2 days ago",
-    category: "Market Research",
-    isPublic: true,
-    downloads: "1.2k",
-    apiAvailable: true
-  },
-  {
-    id: "ds-2",
-    title: "Remote Work & Mental Health Longitudinal Study",
-    description: "Multi-year dataset tracking employee well-being in remote vs. hybrid environments. Anonymized textual sentiment included.",
-    sampleSize: "12.8k",
-    format: "CSV",
-    lastUpdated: "1 week ago",
-    category: "Social Science",
-    isPublic: true,
-    downloads: "856",
-    apiAvailable: true
-  },
-  {
-    id: "ds-3",
-    title: "Gen Z Sustainable Fashion Drivers",
-    description: "Detailed analytics on purchasing drivers for sustainable apparel among youth in Asia and North America.",
-    sampleSize: "8.2k",
-    format: "JSON",
-    lastUpdated: "3 weeks ago",
-    category: "Consumer Goods",
-    isPublic: false,
-    downloads: "420",
-    apiAvailable: true
-  }
-];
+import { MOCK_DATASETS } from "@/lib/datasets-data";
 
-export default function DatasetsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
+function DatasetsContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  // Initialize state from URL params
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
+  const [activeCategory, setActiveCategory] = useState(searchParams.get("category") || "All Categories");
+  const [sortBy, setSortBy] = useState<"newest" | "downloads" | "samples">((searchParams.get("sort") as any) || "newest");
+  const [visibleCount, setVisibleCount] = useState(6);
+
+  // Sync state to URL
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    // Build new params
+    const newParams = new URLSearchParams();
+    if (searchTerm) newParams.set("q", searchTerm);
+    if (activeCategory !== "All Categories") newParams.set("category", activeCategory);
+    if (sortBy !== "newest") newParams.set("sort", sortBy);
+    
+    const newQuery = newParams.toString();
+    const currentQuery = searchParams.toString();
+    
+    // Only update if the query has actually changed
+    if (newQuery !== currentQuery) {
+      const url = newQuery ? `${pathname}?${newQuery}` : pathname;
+      router.replace(url, { scroll: false });
+    }
+  }, [searchTerm, activeCategory, sortBy, pathname, router, searchParams]);
+
+  // Filter and Sort Logic
+  const filteredDatasets = MOCK_DATASETS
+    .filter(ds => {
+      const matchesSearch = ds.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                           ds.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = activeCategory === "All Categories" || ds.category === activeCategory;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      if (sortBy === "downloads") return parseInt(b.downloads.replace('k', '000')) - parseInt(a.downloads.replace('k', '000'));
+      if (sortBy === "samples") return parseFloat(b.sampleSize.replace('k', '')) - parseFloat(a.sampleSize.replace('k', ''));
+      // Default to newest (mock representation)
+      return a.id.localeCompare(b.id);
+    });
+
+  const displayDatasets = filteredDatasets.slice(0, visibleCount);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -64,11 +72,16 @@ export default function DatasetsPage() {
               Access high-quality, de-identified survey data for your research, AI training, and business intelligence.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
-              <Button className="bg-white text-black hover:bg-gray-200">
+              <Button className="bg-white text-black hover:bg-gray-100 font-semibold shadow-xl shadow-white/5 transition-all" onClick={() => {
+                document.getElementById('dataset-list')?.scrollIntoView({ behavior: 'smooth' });
+              }}>
                 <Database className="mr-2 h-4 w-4" /> Browse All Data
               </Button>
-              <Button variant="outline" className="border-white text-white hover:bg-white/10">
-                <FileText className="mr-2 h-4 w-4" /> API Documentation
+              <Button 
+                variant="outline" 
+                className="border-white/20 bg-white/5 text-white hover:bg-white/20 hover:text-white backdrop-blur-sm shadow-xl transition-all"
+              >
+                <FileText className="mr-2 h-4 w-4 text-purple-400" /> API Documentation
               </Button>
             </div>
           </div>
@@ -76,7 +89,7 @@ export default function DatasetsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container px-4 py-12 md:px-6">
+      <div id="dataset-list" className="container px-4 py-12 md:px-6">
         <div className="flex flex-col md:flex-row gap-8">
           
           {/* Sidebar Filters */}
@@ -97,8 +110,13 @@ export default function DatasetsPage() {
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-4">Categories</h3>
               <div className="space-y-2">
-                {["All Categories", "Market Research", "Social Science", "Technology", "Healthcare", "Finance"].map((cat) => (
-                  <Button key={cat} variant="ghost" className="w-full justify-start text-gray-600 dark:text-gray-400 hover:text-purple-600">
+                {["All Categories", "Market Research", "Social Science", "Consumer Goods", "Technology", "Healthcare", "Finance"].map((cat) => (
+                  <Button 
+                    key={cat} 
+                    variant={activeCategory === cat ? "secondary" : "ghost"} 
+                    className={`w-full justify-start ${activeCategory === cat ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' : 'text-gray-600 dark:text-gray-400 hover:text-purple-600'}`}
+                    onClick={() => setActiveCategory(cat)}
+                  >
                     {cat}
                   </Button>
                 ))}
@@ -119,23 +137,36 @@ export default function DatasetsPage() {
           <div className="flex-1 space-y-6">
             <div className="flex items-center justify-between pb-4">
               <div className="text-sm text-gray-500">
-                Showing <span className="font-bold text-gray-900 dark:text-gray-100">3</span> datasets
+                Showing <span className="font-bold text-gray-900 dark:text-gray-100">{displayDatasets.length}</span> of {filteredDatasets.length} datasets
               </div>
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <ArrowUpDown className="h-4 w-4" /> Sort by: Newest
-              </Button>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400 uppercase font-medium">Sort by:</span>
+                <select 
+                  className="bg-transparent border-none text-sm font-medium focus:ring-0 cursor-pointer"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                >
+                  <option value="newest">Newest</option>
+                  <option value="downloads">Most Downloads</option>
+                  <option value="samples">Sample Size</option>
+                </select>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 gap-6">
-              {MOCK_DATASETS.map((ds) => (
+              {displayDatasets.map((ds) => (
                 <Card key={ds.id} className="group overflow-hidden border-0 shadow-lg ring-1 ring-gray-200 dark:ring-gray-800 hover:ring-purple-500/50 transition-all duration-300">
                   <Link href={`/datasets/${ds.id}`} className="block">
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
                         <div className="space-y-1">
-                          <CardTitle className="text-xl group-hover:text-purple-600 transition-colors flex items-center gap-2">
+                          <CardTitle className="text-xl group-hover:text-purple-600 transition-colors flex items-center gap-2 cursor-pointer">
                             {ds.title}
-                            {!ds.isPublic && <Lock className="h-3.5 w-3.5 text-amber-500" />}
+                            {!ds.isPublic && (
+                              <Badge variant="outline" className="text-[10px] h-5 bg-amber-50 text-amber-600 border-amber-200 gap-1 ml-1 px-1.5 cursor-pointer">
+                                <Lock className="h-2.5 w-2.5" /> PAID
+                              </Badge>
+                            )}
                           </CardTitle>
                           <CardDescription className="line-clamp-2 mt-1">
                             {ds.description}
@@ -176,16 +207,34 @@ export default function DatasetsPage() {
               ))}
             </div>
             
-            <div className="flex justify-center pt-8">
-              <Button variant="ghost" className="text-gray-500">
-                Load More Datasets
-              </Button>
-            </div>
+            {visibleCount < filteredDatasets.length && (
+              <div className="flex justify-center pt-8">
+                <Button 
+                  variant="ghost" 
+                  className="text-gray-500 hover:text-purple-600"
+                  onClick={() => setVisibleCount(prev => prev + 6)}
+                >
+                  Load More Datasets
+                </Button>
+              </div>
+            )}
           </div>
 
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DatasetsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="animate-pulse text-purple-600 font-medium">Loading Marketplace...</div>
+      </div>
+    }>
+      <DatasetsContent />
+    </Suspense>
   );
 }
 
