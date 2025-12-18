@@ -8,7 +8,7 @@ import { Toolbox } from "./toolbox";
 import { Canvas } from "./canvas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Save, Eye, Palette, Layout, Split, ArrowLeft, Settings } from "lucide-react";
+import { Save, Eye, Palette, Layout, Split, ArrowLeft, Settings, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { nanoid } from "nanoid";
 import { ThemeEditor } from "./theme-editor";
@@ -52,7 +52,7 @@ export function SurveyBuilder() {
   const [activeLogicQuestionId, setActiveLogicQuestionId] = useState<string | null>(null);
   const [deletingQuestionId, setDeletingQuestionId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'builder' | 'settings'>('builder');
   const [description, setDescription] = useState("");
   const [pointsReward, setPointsReward] = useState(0);
   const [isPublic, setIsPublic] = useState(true);
@@ -439,9 +439,18 @@ export function SurveyBuilder() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
-            <Settings className="mr-2 h-4 w-4" />
-            Settings
+          <Button variant="outline" size="sm" onClick={() => setViewMode(viewMode === 'builder' ? 'settings' : 'builder')}>
+            {viewMode === 'builder' ? (
+                <>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                </>
+            ) : (
+                <>
+                    <Layout className="mr-2 h-4 w-4" />
+                    Canvas
+                </>
+            )}
           </Button>
           <Button variant="outline" size="sm" onClick={() => setActiveSidebar(activeSidebar === 'theme' ? 'toolbox' : 'theme')}>
             <Palette className="mr-2 h-4 w-4" />
@@ -455,311 +464,315 @@ export function SurveyBuilder() {
             <Split className="mr-2 h-4 w-4" />
             Add Page
           </Button>
-          <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => setIsDirty(false)}>
+          <Button variant="outline" size="sm" onClick={() => setIsDirty(false)}>
             <Save className="mr-2 h-4 w-4" />
-            Save Survey
+            Save Draft
+          </Button>
+          <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => { setIsDirty(false); alert('Survey published!'); }}>
+            <Send className="mr-2 h-4 w-4" />
+            Publish
           </Button>
         </div>
       </header>
 
       {/* Main Content */}
-      <DndContext 
-        sensors={sensors} 
-        collisionDetection={closestCenter} 
-        onDragStart={handleDragStart} 
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex flex-1 overflow-hidden">
-          {/* Sidebar */}
-          <aside className="w-64 border-r border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                    {activeSidebar === 'toolbox' ? 'Toolbox' : 'Theme'}
-                </h2>
-                {activeSidebar === 'theme' && (
-                    <Button variant="ghost" size="icon" onClick={() => setActiveSidebar('toolbox')} className="h-6 w-6">
-                        <Layout className="h-4 w-4" />
-                    </Button>
-                )}
-            </div>
-            
-            {activeSidebar === 'toolbox' ? (
-                <Toolbox />
-            ) : (
-                <ThemeEditor theme={theme} onUpdate={(updates) => {
-                    setTheme({ ...theme, ...updates });
-                    setIsDirty(true);
-                }} />
-            )}
-          </aside>
-
-          {/* Canvas */}
-          <main 
-            className="flex-1 overflow-y-auto p-8 transition-colors duration-200"
-            style={{ 
-                backgroundColor: theme.backgroundColor,
-                fontFamily: theme.fontFamily === 'serif' ? 'serif' : theme.fontFamily === 'mono' ? 'monospace' : theme.fontFamily === 'comic' ? '"Comic Sans MS", cursive, sans-serif' : 'inherit'
-            }}
-          >
-            <div className="mx-auto max-w-3xl" style={{ '--primary': theme.primaryColor } as React.CSSProperties}>
-              <SortableContext 
-                items={questions.map(q => q.id).filter(id => {
-                    if (!activeItem) return true;
-                    // If dragging a section, only sections are sortable targets
-                    if (activeItem.type === 'section') {
-                        const q = questions.find(i => i.id === id);
-                        return q?.type === 'section';
-                    }
-                    return true;
-                })} 
-                strategy={verticalListSortingStrategy}
-              >
-                <Canvas 
-                  questions={questions} 
-                  onUpdate={updateQuestion} 
-                  onDelete={deleteQuestion} 
-                  onDuplicate={duplicateQuestion}
-                  onOpenLogic={openLogicEditor}
-                  activeId={activeId}
-                  getLogicWarning={getLogicWarning}
-                />
-              </SortableContext>
-            </div>
-          </main>
-        </div>
-        
-        {activeLogicQuestionId && questions.find(q => q.id === activeLogicQuestionId) && (
-            <LogicEditor 
-                question={questions.find(q => q.id === activeLogicQuestionId)!}
-                allQuestions={questions}
-                open={logicEditorOpen}
-                onOpenChange={setLogicEditorOpen}
-                onSave={saveLogic}
-            />
-        )}
-
-        <Dialog open={!!deletingQuestionId} onOpenChange={(open) => !open && setDeletingQuestionId(null)}>
-            <DialogContent onInteractOutside={(e) => e.preventDefault()}>
-                <DialogHeader>
-                    <DialogTitle>Delete Question?</DialogTitle>
-                    <DialogDescription>
-                        Are you sure you want to delete this question? This action cannot be undone.
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => setDeletingQuestionId(null)}>Cancel</Button>
-                    <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-
-        {/* Settings Dialog */}
-        <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-            <DialogContent className="sm:max-w-[500px]" onInteractOutside={(e) => e.preventDefault()}>
-                <DialogHeader>
-                    <DialogTitle>Survey Settings</DialogTitle>
-                    <DialogDescription>
-                        Configure your survey details and options.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-6 py-4">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Survey Title</label>
-                        <Input 
-                            value={title} 
-                            onChange={(e) => { setTitle(e.target.value); setIsDirty(true); }}
-                            placeholder="Enter survey title"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Description</label>
-                        <div className="border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden">
-                            {/* Formatting Toolbar */}
-                            <div className="flex items-center gap-1 p-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        const textarea = document.getElementById('description-textarea') as HTMLTextAreaElement;
-                                        const start = textarea.selectionStart;
-                                        const end = textarea.selectionEnd;
-                                        const text = textarea.value;
-                                        const selected = text.substring(start, end);
-                                        const newText = text.substring(0, start) + '**' + selected + '**' + text.substring(end);
-                                        setDescription(newText);
-                                        setIsDirty(true);
-                                    }}
-                                    className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
-                                    title="Bold"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        const textarea = document.getElementById('description-textarea') as HTMLTextAreaElement;
-                                        const start = textarea.selectionStart;
-                                        const end = textarea.selectionEnd;
-                                        const text = textarea.value;
-                                        const selected = text.substring(start, end);
-                                        const newText = text.substring(0, start) + '_' + selected + '_' + text.substring(end);
-                                        setDescription(newText);
-                                        setIsDirty(true);
-                                    }}
-                                    className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
-                                    title="Italic"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="19" x2="10" y1="4" y2="4"/><line x1="14" x2="5" y1="20" y2="20"/><line x1="15" x2="9" y1="4" y2="20"/></svg>
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        const textarea = document.getElementById('description-textarea') as HTMLTextAreaElement;
-                                        const start = textarea.selectionStart;
-                                        const end = textarea.selectionEnd;
-                                        const text = textarea.value;
-                                        const selected = text.substring(start, end);
-                                        const url = prompt('Enter URL:', 'https://');
-                                        if (url) {
-                                            const newText = text.substring(0, start) + '[' + (selected || 'link text') + '](' + url + ')' + text.substring(end);
+        {/* Settings View */}
+        {viewMode === 'settings' ? (
+            <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 p-8">
+                <div className="mx-auto max-w-2xl bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-8">
+                    <h2 className="text-2xl font-bold mb-6">Survey Settings</h2>
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Survey Title</label>
+                            <Input 
+                                value={title} 
+                                onChange={(e) => { setTitle(e.target.value); setIsDirty(true); }}
+                                placeholder="Enter survey title"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Description</label>
+                            <div className="border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden">
+                                {/* Formatting Toolbar */}
+                                <div className="flex items-center gap-1 p-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const textarea = document.getElementById('description-textarea') as HTMLTextAreaElement;
+                                            const start = textarea.selectionStart;
+                                            const end = textarea.selectionEnd;
+                                            const text = textarea.value;
+                                            const selected = text.substring(start, end);
+                                            const newText = text.substring(0, start) + '**' + selected + '**' + text.substring(end);
                                             setDescription(newText);
                                             setIsDirty(true);
-                                        }
-                                    }}
-                                    className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
-                                    title="Add Link"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                                </button>
-                                <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 mx-1" />
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        const textarea = document.getElementById('description-textarea') as HTMLTextAreaElement;
-                                        const start = textarea.selectionStart;
-                                        const text = textarea.value;
-                                        const newText = text.substring(0, start) + '\n- ' + text.substring(start);
-                                        setDescription(newText);
-                                        setIsDirty(true);
-                                    }}
-                                    className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
-                                    title="Bullet List"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
-                                </button>
+                                        }}
+                                        className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
+                                        title="Bold"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const textarea = document.getElementById('description-textarea') as HTMLTextAreaElement;
+                                            const start = textarea.selectionStart;
+                                            const end = textarea.selectionEnd;
+                                            const text = textarea.value;
+                                            const selected = text.substring(start, end);
+                                            const newText = text.substring(0, start) + '_' + selected + '_' + text.substring(end);
+                                            setDescription(newText);
+                                            setIsDirty(true);
+                                        }}
+                                        className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
+                                        title="Italic"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="19" x2="10" y1="4" y2="4"/><line x1="14" x2="5" y1="20" y2="20"/><line x1="15" x2="9" y1="4" y2="20"/></svg>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const textarea = document.getElementById('description-textarea') as HTMLTextAreaElement;
+                                            const start = textarea.selectionStart;
+                                            const end = textarea.selectionEnd;
+                                            const text = textarea.value;
+                                            const selected = text.substring(start, end);
+                                            const url = prompt('Enter URL:', 'https://');
+                                            if (url) {
+                                                const newText = text.substring(0, start) + '[' + (selected || 'link text') + '](' + url + ')' + text.substring(end);
+                                                setDescription(newText);
+                                                setIsDirty(true);
+                                            }
+                                        }}
+                                        className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
+                                        title="Add Link"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                    </button>
+                                    <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 mx-1" />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const textarea = document.getElementById('description-textarea') as HTMLTextAreaElement;
+                                            const start = textarea.selectionStart;
+                                            const text = textarea.value;
+                                            const newText = text.substring(0, start) + '\n- ' + text.substring(start);
+                                            setDescription(newText);
+                                            setIsDirty(true);
+                                        }}
+                                        className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
+                                        title="Bullet List"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+                                    </button>
+                                </div>
+                                {/* Textarea */}
+                                <textarea 
+                                    id="description-textarea"
+                                    value={description} 
+                                    onChange={(e) => { setDescription(e.target.value); setIsDirty(true); }}
+                                    placeholder="Describe what this survey is about..."
+                                    className="w-full min-h-[100px] bg-transparent px-3 py-2 text-sm placeholder:text-gray-500 focus:outline-none resize-none"
+                                />
                             </div>
-                            {/* Textarea */}
-                            <textarea 
-                                id="description-textarea"
-                                value={description} 
-                                onChange={(e) => { setDescription(e.target.value); setIsDirty(true); }}
-                                placeholder="Describe what this survey is about..."
-                                className="w-full min-h-[100px] bg-transparent px-3 py-2 text-sm placeholder:text-gray-500 focus:outline-none resize-none"
-                            />
+                            <p className="text-xs text-gray-500">Supports Markdown formatting</p>
                         </div>
-                        <p className="text-xs text-gray-500">Supports Markdown formatting</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Points Reward</label>
-                            <Input 
-                                type="number" 
-                                value={pointsReward} 
-                                onChange={(e) => { setPointsReward(Number(e.target.value)); setIsDirty(true); }}
-                                min={0}
-                            />
-                            <p className="text-xs text-gray-500">Points awarded to respondents</p>
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Visibility</label>
-                            <div className="flex items-center gap-3 pt-2">
-                                <button
-                                    onClick={() => { setIsPublic(true); setIsDirty(true); }}
-                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${isPublic ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
-                                >
-                                    Public
-                                </button>
-                                <button
-                                    onClick={() => { setIsPublic(false); setIsDirty(true); }}
-                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${!isPublic ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
-                                >
-                                    Private
-                                </button>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Points Reward</label>
+                                <Input 
+                                    type="number" 
+                                    value={pointsReward} 
+                                    onChange={(e) => { setPointsReward(Number(e.target.value)); setIsDirty(true); }}
+                                    min={0}
+                                />
+                                <p className="text-xs text-gray-500">Points awarded to respondents</p>
                             </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Visibility</label>
+                                <div className="flex items-center gap-3 pt-2">
+                                    <button
+                                        onClick={() => { setIsPublic(true); setIsDirty(true); }}
+                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${isPublic ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
+                                    >
+                                        Public
+                                    </button>
+                                    <button
+                                        onClick={() => { setIsPublic(false); setIsDirty(true); }}
+                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${!isPublic ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
+                                    >
+                                        Private
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="pt-6 border-t border-gray-200 dark:border-gray-800 text-right">
+                             <Button onClick={() => setViewMode('builder')} className="bg-purple-600 hover:bg-purple-700 text-white">
+                                Back to Canvas
+                             </Button>
                         </div>
                     </div>
                 </div>
-                <DialogFooter>
-                    <Button onClick={() => setSettingsOpen(false)} className="bg-purple-600 hover:bg-purple-700 text-white">Done</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-        
-        <DragOverlay dropAnimation={null}>
-          {activeId ? (
-             activeItem?.isToolboxItem ? (
-                <div className="w-[600px] opacity-60"> {/* Translucent preview */}
-                    {/* Preview of what it looks like */}
-                     <div className="bg-white border border-purple-500 shadow-xl rounded-lg p-4">
-                        <div className="h-4 w-1/3 bg-gray-200 rounded mb-4"></div>
-                        <div className="space-y-2">
-                            <div className="h-8 w-full bg-gray-100 rounded border border-gray-200"></div>
-                            <div className="h-8 w-full bg-gray-100 rounded border border-gray-200"></div>
-                        </div>
-                     </div>
-                </div>
-             ) : (
-                 <div className="w-[800px]"> {/* Fixed width for drag overlay to match canvas */}
-                    {activeItem.type === 'section' ? (
-                        <div className="flex flex-col mb-8 rounded-xl border border-gray-200 bg-white/50 p-4 shadow-2xl dark:border-gray-800 dark:bg-gray-900/50 rotate-2 opacity-90 cursor-grabbing ring-2 ring-purple-500">
-                            <QuestionCard 
-                                question={activeItem} 
-                                onUpdate={() => {}} 
-                                onDelete={() => {}} 
-                                onDuplicate={() => {}} 
-                                onOpenLogic={() => {}}
-                                isOverlay
-                                isFirstSection={true}
-                            />
-                            {/* Render questions belonging to this section */}
-                            <div className="pl-4 mt-4 space-y-4 border-l-2 border-gray-100 dark:border-gray-800 ml-4">
-                                {(() => {
-                                    const index = questions.findIndex(q => q.id === activeItem.id);
-                                    if (index === -1) return null;
-                                    const sectionQuestions = [];
-                                    for (let i = index + 1; i < questions.length; i++) {
-                                        if (questions[i].type === 'section') break;
-                                        sectionQuestions.push(questions[i]);
-                                    }
-                                    return sectionQuestions.map((q, i) => (
-                                        <QuestionCard 
-                                            key={q.id}
-                                            question={q} 
-                                            onUpdate={() => {}} 
-                                            onDelete={() => {}} 
-                                            onDuplicate={() => {}} 
-                                            onOpenLogic={() => {}}
-                                            isOverlay
-                                        />
-                                    ));
-                                })()}
-                            </div>
-                        </div>
+            </div>
+        ) : (
+             <DndContext 
+                sensors={sensors} 
+                collisionDetection={closestCenter} 
+                onDragStart={handleDragStart} 
+                onDragOver={handleDragOver}
+                onDragEnd={handleDragEnd}
+              >
+                <div className="flex flex-1 overflow-hidden">
+                  {/* Sidebar */}
+                  <aside className="w-64 border-r border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 overflow-y-auto">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                            {activeSidebar === 'toolbox' ? 'Toolbox' : 'Theme'}
+                        </h2>
+                        {activeSidebar === 'theme' && (
+                            <Button variant="ghost" size="icon" onClick={() => setActiveSidebar('toolbox')} className="h-6 w-6">
+                                <Layout className="h-4 w-4" />
+                            </Button>
+                        )}
+                    </div>
+                    
+                    {activeSidebar === 'toolbox' ? (
+                        <Toolbox />
                     ) : (
-                        <QuestionCard 
-                            question={activeItem} 
-                            onUpdate={() => {}} 
-                            onDelete={() => {}} 
-                            onDuplicate={() => {}} 
-                            onOpenLogic={() => {}}
-                            isOverlay
-                        />
+                        <ThemeEditor theme={theme} onUpdate={(updates) => {
+                            setTheme({ ...theme, ...updates });
+                            setIsDirty(true);
+                        }} />
                     )}
-                 </div>
-             )
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+                  </aside>
+
+                  {/* Canvas */}
+                  <main 
+                    className="flex-1 overflow-y-auto p-8 transition-colors duration-200"
+                    style={{ 
+                        backgroundColor: theme.backgroundColor,
+                        fontFamily: theme.fontFamily === 'serif' ? 'serif' : theme.fontFamily === 'mono' ? 'monospace' : theme.fontFamily === 'comic' ? '"Comic Sans MS", cursive, sans-serif' : 'inherit'
+                    }}
+                  >
+                    <div className="mx-auto max-w-3xl" style={{ '--primary': theme.primaryColor } as React.CSSProperties}>
+                      <SortableContext 
+                        items={questions.map(q => q.id).filter(id => {
+                            if (!activeItem) return true;
+                            // If dragging a section, only sections are sortable targets
+                            if (activeItem.type === 'section') {
+                                const q = questions.find(i => i.id === id);
+                                return q?.type === 'section';
+                            }
+                            return true;
+                        })} 
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <Canvas 
+                          questions={questions} 
+                          onUpdate={updateQuestion} 
+                          onDelete={deleteQuestion} 
+                          onDuplicate={duplicateQuestion}
+                          onOpenLogic={openLogicEditor}
+                          activeId={activeId}
+                          getLogicWarning={getLogicWarning}
+                        />
+                      </SortableContext>
+                    </div>
+                  </main>
+                </div>
+                
+                {activeLogicQuestionId && questions.find(q => q.id === activeLogicQuestionId) && (
+                    <LogicEditor 
+                        question={questions.find(q => q.id === activeLogicQuestionId)!}
+                        allQuestions={questions}
+                        open={logicEditorOpen}
+                        onOpenChange={setLogicEditorOpen}
+                        onSave={saveLogic}
+                    />
+                )}
+
+                <Dialog open={!!deletingQuestionId} onOpenChange={(open) => !open && setDeletingQuestionId(null)}>
+                    <DialogContent onInteractOutside={(e) => e.preventDefault()}>
+                        <DialogHeader>
+                            <DialogTitle>Delete Question?</DialogTitle>
+                            <DialogDescription>
+                                Are you sure you want to delete this question? This action cannot be undone.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setDeletingQuestionId(null)}>Cancel</Button>
+                            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+                
+                <DragOverlay dropAnimation={null}>
+                  {activeId ? (
+                     activeItem?.isToolboxItem ? (
+                        <div className="w-[600px] opacity-60"> {/* Translucent preview */}
+                            {/* Preview of what it looks like */}
+                             <div className="bg-white border border-purple-500 shadow-xl rounded-lg p-4">
+                                <div className="h-4 w-1/3 bg-gray-200 rounded mb-4"></div>
+                                <div className="space-y-2">
+                                    <div className="h-8 w-full bg-gray-100 rounded border border-gray-200"></div>
+                                    <div className="h-8 w-full bg-gray-100 rounded border border-gray-200"></div>
+                                </div>
+                             </div>
+                        </div>
+                     ) : (
+                         <div className="w-[800px]"> {/* Fixed width for drag overlay to match canvas */}
+                            {activeItem.type === 'section' ? (
+                                <div className="flex flex-col mb-8 rounded-xl border border-gray-200 bg-white/50 p-4 shadow-2xl dark:border-gray-800 dark:bg-gray-900/50 rotate-2 opacity-90 cursor-grabbing ring-2 ring-purple-500">
+                                    <QuestionCard 
+                                        question={activeItem} 
+                                        onUpdate={() => {}} 
+                                        onDelete={() => {}} 
+                                        onDuplicate={() => {}} 
+                                        onOpenLogic={() => {}}
+                                        isOverlay
+                                        isFirstSection={true}
+                                    />
+                                    {/* Render questions belonging to this section */}
+                                    <div className="pl-4 mt-4 space-y-4 border-l-2 border-gray-100 dark:border-gray-800 ml-4">
+                                        {(() => {
+                                            const index = questions.findIndex(q => q.id === activeItem.id);
+                                            if (index === -1) return null;
+                                            const sectionQuestions = [];
+                                            for (let i = index + 1; i < questions.length; i++) {
+                                                if (questions[i].type === 'section') break;
+                                                sectionQuestions.push(questions[i]);
+                                            }
+                                            return sectionQuestions.map((q, i) => (
+                                                <QuestionCard 
+                                                    key={q.id}
+                                                    question={q} 
+                                                    onUpdate={() => {}} 
+                                                    onDelete={() => {}} 
+                                                    onDuplicate={() => {}} 
+                                                    onOpenLogic={() => {}}
+                                                    isOverlay
+                                                />
+                                            ));
+                                        })()}
+                                    </div>
+                                </div>
+                            ) : (
+                                <QuestionCard 
+                                    question={activeItem} 
+                                    onUpdate={() => {}} 
+                                    onDelete={() => {}} 
+                                    onDuplicate={() => {}} 
+                                    onOpenLogic={() => {}}
+                                    isOverlay
+                                />
+                            )}
+                         </div>
+                     )
+                  ) : null}
+                </DragOverlay>
+              </DndContext>
+        )}
     </div>
   );
 }
