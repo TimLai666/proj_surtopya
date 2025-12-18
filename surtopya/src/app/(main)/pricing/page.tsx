@@ -70,6 +70,9 @@ export default function PricingPage() {
                 <Check className="h-4 w-4 text-purple-500" /> Advanced Analytics & Export
               </li>
               <li className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
+                <Check className="h-4 w-4 text-purple-500" /> Exclude from Open Datasets
+              </li>
+              <li className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
                 <Check className="h-4 w-4 text-purple-500" /> Priority Support
               </li>
             </ul>

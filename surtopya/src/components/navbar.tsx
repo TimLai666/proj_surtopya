@@ -43,6 +43,7 @@ export function Navbar() {
 
   const navItems = [
     { name: "Explore", href: "/explore", icon: Compass },
+    { name: "Datasets", href: "/datasets", icon: Info },
     { name: "Pricing", href: "/pricing", icon: CreditCard },
     { name: "About", href: "/about", icon: Info },
   ];

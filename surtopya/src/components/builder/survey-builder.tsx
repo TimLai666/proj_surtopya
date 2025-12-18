@@ -8,7 +8,8 @@ import { Toolbox } from "./toolbox";
 import { Canvas } from "./canvas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Save, Eye, Palette, Layout, Split, ArrowLeft, Settings, Send, History as HistoryIcon } from "lucide-react";
+import { Save, Eye, Palette, Layout, Split, ArrowLeft, Settings, Send, History as HistoryIcon, Database, AlertTriangle } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
 import { nanoid } from "nanoid";
 import { ThemeEditor } from "./theme-editor";
@@ -58,6 +59,7 @@ export function SurveyBuilder() {
 
 
   const [isPublic, setIsPublic] = useState(true);
+  const [includeInDatasets, setIncludeInDatasets] = useState(true);
   const [isPublished, setIsPublished] = useState(false);
   const [hasUnpublishedChanges, setHasUnpublishedChanges] = useState(false);
 
@@ -72,6 +74,7 @@ export function SurveyBuilder() {
       description: string;
       pointsReward: number;
       isPublic: boolean;
+      includeInDatasets: boolean;
   } | null>(null);
   const [confirmSettingsExit, setConfirmSettingsExit] = useState(false);
 
@@ -79,7 +82,8 @@ export function SurveyBuilder() {
       settingsDraft.title !== title || 
       settingsDraft.description !== description || 
       settingsDraft.pointsReward !== pointsReward || 
-      settingsDraft.isPublic !== isPublic
+      settingsDraft.isPublic !== isPublic ||
+      settingsDraft.includeInDatasets !== includeInDatasets
   ) : false;
 
   React.useEffect(() => {
@@ -493,11 +497,11 @@ export function SurveyBuilder() {
           <Button variant="outline" size="sm" onClick={() => {
               if (viewMode === 'builder') {
                   // Enter settings mode - init draft
-                  setSettingsDraft({ title, description, pointsReward, isPublic });
+                  setSettingsDraft({ title, description, pointsReward, isPublic, includeInDatasets });
                   setViewMode('settings');
               } else {
                   // Try to exit settings mode - check for changes
-                  const hasChanges = JSON.stringify(settingsDraft) !== JSON.stringify({ title, description, pointsReward, isPublic });
+                  const hasChanges = JSON.stringify(settingsDraft) !== JSON.stringify({ title, description, pointsReward, isPublic, includeInDatasets });
                   if (hasChanges) {
                       setConfirmSettingsExit(true);
                   } else {
@@ -645,6 +649,7 @@ export function SurveyBuilder() {
                             </div>
                             <p className="text-xs text-gray-500">Supports Markdown formatting</p>
                         </div>
+
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Points Reward</label>
@@ -674,6 +679,46 @@ export function SurveyBuilder() {
                                 </div>
                             </div>
                         </div>
+
+                        <Separator className="dark:bg-gray-800" />
+
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                    <label className="text-sm font-bold flex items-center gap-2">
+                                        <Database className="h-4 w-4 text-purple-600" />
+                                        Include in Dataset Program
+                                    </label>
+                                    <p className="text-xs text-gray-500 max-w-[400px]">
+                                        Automatically de-identify and contribute survey results to our data marketplace. 
+                                        Paid users can toggle this off per survey.
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => setSettingsDraft(prev => prev ? ({ ...prev, includeInDatasets: true }) : null)}
+                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${settingsDraft?.includeInDatasets ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
+                                    >
+                                        Enable
+                                    </button>
+                                    <button
+                                        onClick={() => setSettingsDraft(prev => prev ? ({ ...prev, includeInDatasets: false }) : null)}
+                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${!settingsDraft?.includeInDatasets ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
+                                    >
+                                        Disable
+                                    </button>
+                                </div>
+                            </div>
+                            {!settingsDraft?.includeInDatasets && (
+                                <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 flex items-start gap-3">
+                                    <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5" />
+                                    <p className="text-xs text-amber-700 dark:text-amber-400">
+                                        Disabling this option requires a <strong>Pro Subscription</strong>. 
+                                        Open datasets help researchers and keep our basic plan free.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                         
                         <div className="pt-6 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-3">
                              <Button variant="ghost" onClick={() => setViewMode('builder')} className="text-gray-500 hover:text-gray-700">
@@ -687,6 +732,7 @@ export function SurveyBuilder() {
                                      setDescription(settingsDraft.description);
                                      setPointsReward(settingsDraft.pointsReward);
                                      setIsPublic(settingsDraft.isPublic);
+                                     setIncludeInDatasets(settingsDraft.includeInDatasets);
                                      notifyChange();
                                  }
                              }} className={hasUnsavedSettings ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 text-gray-500 hover:bg-gray-200"}>
@@ -725,6 +771,19 @@ export function SurveyBuilder() {
                             setTheme({ ...theme, ...updates });
                             notifyChange();
                         }} />
+                    )}
+
+                    {activeSidebar === 'toolbox' && (
+                        <div className="mt-8 p-4 rounded-xl bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/50">
+                            <div className="flex items-center gap-2 text-purple-600 font-bold text-xs uppercase tracking-widest mb-2">
+                                <Database className="h-3.5 w-3.5" />
+                                Dataset Notice
+                            </div>
+                            <p className="text-[11px] text-purple-700 dark:text-purple-400 leading-relaxed">
+                                Responses to this survey will be de-identified and added to our **Open Dataset Marketplace**. 
+                                This helps us keep the platform free for everyone.
+                            </p>
+                        </div>
                     )}
                   </aside>
 
