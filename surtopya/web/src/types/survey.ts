@@ -14,6 +14,7 @@ export interface Question {
     required: boolean;
     points: number;
     logic?: LogicRule[];
+    maxRating?: number; // Task 10
 }
 
 export interface SurveyTheme {
@@ -35,5 +36,6 @@ export interface Survey {
         isDatasetActive: boolean;
         pointsReward: number;
         expiresAt?: string;
+        publishedCount?: number; // Task 6
     };
 }

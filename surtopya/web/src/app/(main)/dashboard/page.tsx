@@ -17,6 +17,7 @@ const MY_SURVEYS = [
     author: { name: "You", image: "" },
     tags: ["Feedback"],
     isHot: false,
+    visibility: 'public' as const,
   },
   {
     id: "my-2",
@@ -29,6 +30,7 @@ const MY_SURVEYS = [
     author: { name: "You", image: "" },
     tags: ["HR"],
     isHot: false,
+    visibility: 'non-public' as const,
   },
   {
     id: "my-3",
@@ -41,6 +43,7 @@ const MY_SURVEYS = [
     author: { name: "You", image: "" },
     tags: ["Product"],
     isHot: true,
+    visibility: 'public' as const,
   },
 ];
 

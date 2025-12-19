@@ -200,8 +200,8 @@ export function SurveyRenderer({ survey, theme, isPreview = false, onComplete }:
                       className="flex items-center space-x-3 rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50 cursor-pointer" 
                       onClick={() => handleAnswer(question.id, option)}
                     >
-                      <RadioGroupItem value={option} id={`${question.id}-${option}`} />
-                      <Label htmlFor={`${question.id}-${option}`} className="flex-1 cursor-pointer font-normal text-base">{option}</Label>
+                      <RadioGroupItem value={option} id={`${question.id}-${option}`} className="pointer-events-none" />
+                      <Label htmlFor={`${question.id}-${option}`} className="flex-1 cursor-pointer font-normal text-base pointer-events-none">{option}</Label>
                     </div>
                   ))}
                 </RadioGroup>
@@ -223,8 +223,8 @@ export function SurveyRenderer({ survey, theme, isPreview = false, onComplete }:
                           handleAnswer(question.id, newAnswers);
                         }}
                       >
-                        <Checkbox checked={isChecked} id={`${question.id}-${option}`} />
-                        <Label htmlFor={`${question.id}-${option}`} className="flex-1 cursor-pointer font-normal text-base">{option}</Label>
+                        <Checkbox checked={isChecked} id={`${question.id}-${option}`} className="pointer-events-none" />
+                        <Label htmlFor={`${question.id}-${option}`} className="flex-1 cursor-pointer font-normal text-base pointer-events-none">{option}</Label>
                       </div>
                     );
                   })}
@@ -251,7 +251,9 @@ export function SurveyRenderer({ survey, theme, isPreview = false, onComplete }:
 
               {question.type === "rating" && (
                 <div className="flex justify-center gap-2 py-8">
-                  {[1, 2, 3, 4, 5].map((star) => (
+                  {Array.from({ length: question.maxRating || 5 }).map((_, index) => {
+                    const star = index + 1;
+                    return (
                     <button
                       key={star}
                       onClick={() => handleAnswer(question.id, star)}
@@ -263,7 +265,8 @@ export function SurveyRenderer({ survey, theme, isPreview = false, onComplete }:
                     >
                       <StarIcon className="h-10 w-10 fill-current" />
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 

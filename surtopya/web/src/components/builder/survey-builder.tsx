@@ -9,7 +9,7 @@ import { Canvas } from "./canvas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Save, Eye, Palette, Layout, Split, ArrowLeft, Settings, Send, History as HistoryIcon, Database, AlertTriangle, Globe, Lock } from "lucide-react";
+import { Save, Eye, Palette, Layout, Split, ArrowLeft, Settings, Send, History as HistoryIcon, Database, AlertTriangle, Globe, Lock, Rocket, RotateCcw } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
 import { nanoid } from "nanoid";
@@ -28,6 +28,17 @@ import {
 
 // Simple ID generator if nanoid causes issues or for simplicity
 const generateId = () => Math.random().toString(36).substr(2, 9);
+
+const calculateEstimatedTime = (questions: Question[]) => {
+    return questions.reduce((acc, q) => {
+        switch(q.type) {
+             case 'short': return acc + 1;
+             case 'long': return acc + 2;
+             case 'section': return acc;
+             default: return acc + 0.5;
+        }
+    }, 0);
+};
 
 export function SurveyBuilder() {
   const router = useRouter();
@@ -66,6 +77,8 @@ export function SurveyBuilder() {
   const [includeInDatasets, setIncludeInDatasets] = useState(true);
   const [isPublished, setIsPublished] = useState(false);
   const [hasUnpublishedChanges, setHasUnpublishedChanges] = useState(false);
+  const [publishSettingsOpen, setPublishSettingsOpen] = useState(false);
+  const [publishedCount, setPublishedCount] = useState(0);
 
   const notifyChange = () => {
       setIsDirty(true);
@@ -508,103 +521,6 @@ export function SurveyBuilder() {
   return (
     <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-950">
       {/* Header */}
-      <header className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3 dark:border-gray-800 dark:bg-gray-900">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <span className="font-bold text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Surtopya</span>
-          <div className="h-6 w-px bg-gray-200 dark:bg-gray-800" />
-          <Input 
-            value={title} 
-            onChange={(e) => { setTitle(e.target.value); notifyChange(); }}
-            className="text-lg font-bold border-transparent hover:border-gray-200 focus:border-purple-500 w-[300px]"
-          />
-          <div className="flex items-center gap-2 text-xs font-medium">
-             {isDirty ? (
-                 <span className="text-amber-500 flex items-center bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                     <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5" />
-                     Unsaved changes
-                 </span>
-             ) : (
-                 <span className="text-emerald-600 flex items-center bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5" />
-                     Saved
-                 </span>
-             )}
-             {isPublished && (
-                 hasUnpublishedChanges ? (
-                    <span className="text-gray-500 flex items-center bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200" title="The published version is older than your current draft">
-                        <HistoryIcon className="w-3 h-3 mr-1" />
-                        Published (Old)
-                    </span>
-                 ) : (
-                    <span className="text-purple-600 flex items-center bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
-                        <Send className="w-3 h-3 mr-1" />
-                        Published
-                    </span>
-                 )
-             )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => {
-              if (viewMode === 'builder') {
-                  // Enter settings mode - init draft
-                  setSettingsDraft({ title, description, pointsReward, isPublic, includeInDatasets });
-                  setViewMode('settings');
-              } else {
-                  // Try to exit settings mode - check for changes
-                  const hasChanges = JSON.stringify(settingsDraft) !== JSON.stringify({ title, description, pointsReward, isPublic, includeInDatasets });
-                  if (hasChanges) {
-                      setConfirmSettingsExit(true);
-                  } else {
-                      setViewMode('builder');
-                  }
-              }
-          }}>
-            {viewMode === 'builder' ? (
-                <>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                </>
-            ) : (
-                <>
-                    <Layout className="mr-2 h-4 w-4" />
-                    Canvas
-                </>
-            )}
-          </Button>
-          {viewMode === 'builder' && (
-            <Button variant="outline" size="sm" onClick={() => setActiveSidebar(activeSidebar === 'theme' ? 'toolbox' : 'theme')}>
-                <Palette className="mr-2 h-4 w-4" />
-                Theme
-            </Button>
-          )}
-          <Button variant="outline" size="sm" onClick={openPreview}>
-            <Eye className="mr-2 h-4 w-4" />
-            Preview
-          </Button>
-          {viewMode === 'builder' && (
-            <Button variant="outline" size="sm" onClick={addPage}>
-                <Split className="mr-2 h-4 w-4" />
-                Add Page
-            </Button>
-          )}
-          <Button variant="outline" size="sm" onClick={() => {
-              notifyChange();
-              // In a real app this would save to backend
-              setTimeout(() => setIsDirty(false), 500);
-            }}>
-            <Save className="mr-2 h-4 w-4" />
-            Save Draft
-          </Button>
-          <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => { setIsDirty(false); setIsPublished(true); setHasUnpublishedChanges(false); alert('Survey published!'); }}>
-            <Send className="mr-2 h-4 w-4" />
-            Publish
-          </Button>
-        </div>
-      </header>
 
       {/* Main Content */}
         {/* Settings View */}
@@ -814,6 +730,42 @@ export function SurveyBuilder() {
                 onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
               >
+                <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between shadow-sm z-10 dark:bg-gray-900 dark:border-gray-800">
+                     <div className="flex items-center gap-4">
+                          <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')}>
+                              <ArrowLeft className="h-4 w-4" />
+                          </Button>
+                          <div className="flex flex-col">
+                              <h1 className="text-sm font-bold">{title}</h1>
+                              <span className="text-[10px] text-gray-400 capitalize">{isPublished ? 'Published' : 'Draft'} • {questions.length} Questions</span>
+                          </div>
+                     </div>
+                     <div className="flex items-center gap-3">
+                          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                              <Button variant="secondary" size="sm" onClick={() => setViewMode('builder')} className="text-xs h-7">Builder</Button>
+                              <Button variant="ghost" size="sm" onClick={() => {
+                                   if (isDirty) notifyChange();
+                                   setViewMode('settings');
+                               }} className="text-xs h-7">Settings</Button>
+                          </div>
+                         <Separator orientation="vertical" className="h-6" />
+                         <span className="flex items-center gap-1 text-xs text-gray-500">
+                                <HistoryIcon className="h-3 w-3" />
+                                {calculateEstimatedTime(questions)}m
+                         </span>
+                         <Button size="sm" variant="outline" onClick={() => openPreview()} className="h-8">
+                                <Eye className="mr-2 h-3 w-3" /> Preview
+                         </Button>
+                         <Button 
+                                size="sm" 
+                                onClick={() => setPublishSettingsOpen(true)} 
+                                className={`h-8 ${hasUnpublishedChanges ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 text-gray-500 hover:bg-gray-200"}`}
+                            >
+                                <Rocket className="mr-2 h-3 w-3" />
+                                {isPublished ? "Republish" : "Publish"}
+                         </Button>
+                     </div>
+                </div>
                 <div className="flex flex-1 overflow-hidden">
                   {/* Sidebar */}
                   <aside className="w-64 border-r border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 overflow-y-auto">
@@ -983,7 +935,106 @@ export function SurveyBuilder() {
                      )
                   ) : null}
                 </DragOverlay>
-              </DndContext>
+
+            <Dialog open={publishSettingsOpen} onOpenChange={setPublishSettingsOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Publish Settings</DialogTitle>
+                        <DialogDescription>Configured visibility and dataset options before {isPublished ? 'republishing' : 'publishing'}.</DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-6 py-4">
+                        {publishedCount === 0 && (
+                            <div className="p-3 bg-blue-50 text-blue-700 text-sm rounded-lg flex gap-2">
+                                <AlertTriangle className="h-5 w-5 shrink-0" />
+                                <div>
+                                    <strong>First Publish Notice:</strong> Once published, dataset sharing settings will be locked. Non-public surveys cannot be switched to public later.
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                                <label className="text-sm font-medium flex items-center gap-2">
+                                    {isPublic ? <Globe className="h-4 w-4 text-emerald-500" /> : <Lock className="h-4 w-4 text-amber-500" />}
+                                    Visibility
+                                </label>
+                                <p className="text-xs text-gray-500">
+                                    {isPublic ? "Visible to everyone in the marketplace" : "Only accessible via direct link"}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium">{isPublic ? "Public" : "Private"}</span>
+                                <Switch 
+                                    checked={isPublic}
+                                    disabled={publishedCount > 0 && !isPublic} // Cannot switch to Public if already published as Private
+                                    onCheckedChange={(checked) => {
+                                        setIsPublic(checked);
+                                        // Auto-force dataset logic
+                                        if (checked) {
+                                            setIncludeInDatasets(true);
+                                        } else {
+                                            setIncludeInDatasets(false);
+                                        }
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between opacity-100">
+                             <div className="space-y-0.5">
+                                <label className="text-sm font-medium flex items-center gap-2">
+                                    <Database className="h-4 w-4 text-purple-500" />
+                                    Dataset Contributions
+                                </label>
+                                <p className="text-xs text-gray-500">
+                                    {isPublic 
+                                        ? "Public surveys must contribute to the dataset marketplace." 
+                                        : "Private surveys cannot contribute to the dataset marketplace."}
+                                </p>
+                            </div>
+                            <Switch 
+                                checked={includeInDatasets}
+                                disabled={true} // Always disabled as per requirement (auto-force)
+                                onCheckedChange={setIncludeInDatasets}
+                            />
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                                <label className="text-sm font-medium">Points Reward</label>
+                                <p className="text-xs text-gray-500">Points awarded to respondents</p>
+                            </div>
+                            <Input 
+                                type="number" 
+                                value={pointsReward} 
+                                onChange={(e) => setPointsReward(parseInt(e.target.value) || 0)}
+                                className="w-24"
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setPublishSettingsOpen(false)}>Cancel</Button>
+                        <Button 
+                            className="bg-purple-600 hover:bg-purple-700" 
+                            onClick={() => {
+                                setIsPublished(true);
+                                setHasUnpublishedChanges(false);
+                                setPublishedCount(prev => prev + 1);
+                                setPublishSettingsOpen(false);
+                                // Here you would trigger API call
+                                notifyChange(); // Just to clear dirty state in real app
+                                setIsDirty(false); // Clear dirty
+                            }}
+                        >
+                            <Rocket className="mr-2 h-4 w-4" />
+                            Confirm & {isPublished ? 'Republish' : 'Publish'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+                  </DndContext>
         )}
     </div>
   );

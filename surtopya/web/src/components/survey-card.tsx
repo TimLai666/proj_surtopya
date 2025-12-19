@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Clock, Users, Star, ChevronRight } from "lucide-react";
+import { Clock, Users, Star, ChevronRight, Lock, Globe } from "lucide-react";
 
 interface SurveyCardProps {
   id: string;
@@ -19,6 +19,7 @@ interface SurveyCardProps {
   tags: string[];
   isHot?: boolean;
   variant?: 'explore' | 'dashboard'; // explore = go to intro page, dashboard = go to management page
+  visibility?: 'public' | 'non-public';
 }
 
 export function SurveyCard({
@@ -33,6 +34,7 @@ export function SurveyCard({
   tags,
   isHot,
   variant = 'explore',
+  visibility = 'public',
 }: SurveyCardProps) {
   // Determine link based on variant
   const href = variant === 'dashboard' 
@@ -93,13 +95,31 @@ export function SurveyCard({
         <CardFooter className="border-t border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-900/50">
           <div className="flex w-full items-center justify-between">
             <div className="flex items-center gap-2">
-              <Avatar className="h-6 w-6 border border-gray-200 dark:border-gray-700">
-                <AvatarImage src={author.image} />
-                <AvatarFallback className="text-[10px]">{author.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
-                {author.name}
-              </span>
+              {variant === 'dashboard' ? (
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
+                      {visibility === 'public' ? (
+                          <>
+                              <Globe className="h-3.5 w-3.5 text-emerald-500" />
+                              <span className="text-emerald-600 dark:text-emerald-400">Public</span>
+                          </>
+                      ) : (
+                          <>
+                              <Lock className="h-3.5 w-3.5 text-amber-500" />
+                              <span className="text-amber-600 dark:text-amber-400">Private</span>
+                          </>
+                      )}
+                  </div>
+              ) : (
+                <>
+                  <Avatar className="h-6 w-6 border border-gray-200 dark:border-gray-700">
+                    <AvatarImage src={author.image} />
+                    <AvatarFallback className="text-[10px]">{author.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                    {author.name}
+                  </span>
+                </>
+              )}
             </div>
             
             <div className="flex items-center gap-3">

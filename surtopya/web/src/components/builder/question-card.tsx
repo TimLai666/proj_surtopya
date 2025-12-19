@@ -159,8 +159,8 @@ export function QuestionCard({ question, isFirstSection, onUpdate, onDelete, onD
 
             {question.type === 'rating' && (
               <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <StarIcon key={star} className="h-6 w-6 text-gray-300" />
+                {Array.from({ length: question.maxRating || 5 }).map((_, i) => (
+                  <StarIcon key={i} className="h-6 w-6 text-gray-300" />
                 ))}
               </div>
             )}
@@ -197,6 +197,19 @@ export function QuestionCard({ question, isFirstSection, onUpdate, onDelete, onD
       
       {question.type !== 'section' && (
         <div className="border-t border-gray-100 bg-gray-50/50 p-2 px-4 flex justify-end gap-4 items-center text-xs text-gray-500">
+            {question.type === 'rating' && (
+               <div className="flex items-center gap-2">
+                <span>Max Stars</span>
+                <Input 
+                    type="number" 
+                    min={3}
+                    max={10}
+                    value={question.maxRating || 5} 
+                    onChange={(e) => onUpdate(question.id, { maxRating: parseInt(e.target.value) || 5 })}
+                    className="w-16 h-6 text-xs"
+                />
+               </div>
+            )}
             <div className="flex items-center gap-2">
             <span>Required</span>
             <Switch 

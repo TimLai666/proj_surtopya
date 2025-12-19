@@ -22,7 +22,7 @@ const MOCK_SURVEYS_LIST = [
     tags: ["市場研究", "永續發展"],
     isHot: true,
     category: "market",
-    visibility: 'public',
+    visibility: 'public' as const,
   },
   {
     id: "2",
@@ -36,7 +36,7 @@ const MOCK_SURVEYS_LIST = [
     tags: ["學術研究", "心理學"],
     isHot: false,
     category: "academic",
-    visibility: 'public',
+    visibility: 'public' as const,
   },
   {
     id: "3",
@@ -50,7 +50,7 @@ const MOCK_SURVEYS_LIST = [
     tags: ["生活方式", "旅遊"],
     isHot: true,
     category: "market",
-    visibility: 'public',
+    visibility: 'public' as const,
   },
   {
     id: "4",
@@ -64,7 +64,7 @@ const MOCK_SURVEYS_LIST = [
     tags: ["UX 研究", "技術"],
     isHot: false,
     category: "ux",
-    visibility: 'non-public',
+    visibility: 'non-public' as const,
   },
   {
     id: "5",
@@ -78,7 +78,7 @@ const MOCK_SURVEYS_LIST = [
     tags: ["餐飲服務"],
     isHot: false,
     category: "market",
-    visibility: 'public',
+    visibility: 'public' as const,
   },
   {
     id: "6",
@@ -92,7 +92,7 @@ const MOCK_SURVEYS_LIST = [
     tags: ["教育", "人工智慧"],
     isHot: false,
     category: "academic",
-    visibility: 'public',
+    visibility: 'public' as const,
   },
 ];
 
