@@ -18,6 +18,7 @@ const MY_SURVEYS = [
     tags: ["Feedback"],
     isHot: false,
     visibility: 'public' as const,
+    hasUnpublishedChanges: true,
   },
   {
     id: "my-2",

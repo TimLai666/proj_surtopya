@@ -18,6 +18,12 @@ import { LogicEditor } from "./logic-editor";
 import { SurveyTheme, LogicRule } from "@/types/survey";
 import { QuestionCard } from "./question-card";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -249,7 +255,7 @@ export function SurveyBuilder() {
           }
 
           setQuestions(newItems);
-          setIsDirty(true);
+          notifyChange();
       } else {
           // Fallback if no placeholder
           // Append to end is safe.
@@ -379,19 +385,34 @@ export function SurveyBuilder() {
   };
 
   const duplicateQuestion = (id: string) => {
-    const questionToDuplicate = questions.find(q => q.id === id);
-    if (!questionToDuplicate) return;
+    const startIndex = questions.findIndex(q => q.id === id);
+    if (startIndex === -1) return;
 
-    const newQuestion: Question = {
-      ...questionToDuplicate,
-      id: generateId(),
-      title: `${questionToDuplicate.title} (Copy)`,
-      logic: [], // Don't copy logic to avoid broken references
-    };
+    const itemsToDuplicate: Question[] = [];
+    const item = questions[startIndex];
+    itemsToDuplicate.push({
+        ...item,
+        id: generateId(),
+        title: `${item.title} (Copy)`,
+        logic: [],
+    });
 
-    const index = questions.findIndex(q => q.id === id);
+    // If it's a page (section), also duplicate all questions until the next section
+    if (item.type === 'section') {
+        let i = startIndex + 1;
+        while (i < questions.length && questions[i].type !== 'section') {
+            const q = questions[i];
+            itemsToDuplicate.push({
+                ...q,
+                id: generateId(),
+                logic: [], // Don't copy logic to avoid referential issues
+            });
+            i++;
+        }
+    }
+
     const newQuestions = [...questions];
-    newQuestions.splice(index + 1, 0, newQuestion);
+    newQuestions.splice(startIndex + itemsToDuplicate.length, 0, ...itemsToDuplicate);
     
     setQuestions(newQuestions);
     notifyChange();
@@ -521,8 +542,93 @@ export function SurveyBuilder() {
   return (
     <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-950">
       {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between shadow-sm z-10 dark:bg-gray-900 dark:border-gray-800">
+           <div className="flex items-center gap-4">
+                <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')}>
+                    <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div className="flex flex-col">
+                    <Input 
+                        value={title} 
+                        onChange={(e) => {
+                            setTitle(e.target.value);
+                            notifyChange();
+                        }}
+                        className="h-7 text-sm font-bold border-transparent hover:border-gray-200 focus:border-purple-500 bg-transparent px-1 w-auto min-w-[150px]"
+                        placeholder="Untitled Survey"
+                    />
+                    <span className="text-[10px] text-gray-400 capitalize px-1">{isPublished ? 'Published' : 'Draft'} • {questions.filter(q => q.type !== 'section').length} Questions</span>
+                </div>
+           </div>
+           <div className="flex items-center gap-3">
+                <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                    <Button 
+                        variant={viewMode === 'builder' ? 'secondary' : 'ghost'} 
+                        size="sm" 
+                        onClick={() => setViewMode('builder')} 
+                        className={`text-xs h-7 ${viewMode === 'builder' ? 'bg-white shadow-sm' : ''}`}
+                    >
+                        Builder
+                    </Button>
+                    <Button 
+                        variant={viewMode === 'settings' ? 'secondary' : 'ghost'} 
+                        size="sm" 
+                        onClick={() => {
+                            if (isDirty) notifyChange();
+                            setViewMode('settings');
+                        }} 
+                        className={`text-xs h-7 ${viewMode === 'settings' ? 'bg-white shadow-sm' : ''}`}
+                    >
+                        Settings
+                    </Button>
+                </div>
+               <Separator orientation="vertical" className="h-6" />
+               <span className="flex items-center gap-1 text-xs text-gray-500">
+                      <HistoryIcon className="h-3 w-3" />
+                      <TooltipProvider>
+                          <Tooltip>
+                              <TooltipTrigger asChild>
+                                  <span className="cursor-help">{calculateEstimatedTime(questions)}m</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                  <p>Estimated time to complete the survey</p>
+                              </TooltipContent>
+                          </Tooltip>
+                      </TooltipProvider>
+               </span>
+               <Button size="sm" variant="outline" onClick={() => setActiveSidebar('theme')} className="h-8">
+                      <Palette className="mr-2 h-3 w-3" /> Theme
+               </Button>
+               <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                          setIsDirty(false);
+                          // Mock save logic
+                          alert("Survey saved successfully!");
+                      }} 
+                      className="h-8"
+                      disabled={!isDirty}
+                 >
+                      <Save className="mr-2 h-3 w-3" /> Save
+               </Button>
+               <Button size="sm" variant="outline" onClick={() => openPreview()} className="h-8">
+                      <Eye className="mr-2 h-3 w-3" /> Preview
+               </Button>
+               <Button 
+                      size="sm" 
+                      onClick={() => setPublishSettingsOpen(true)} 
+                      className={`h-8 ${hasUnpublishedChanges ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
+                      disabled={!hasUnpublishedChanges}
+                  >
+                      <Send className="mr-2 h-3 w-3" />
+                      {isPublished ? "Republish" : "Publish"}
+               </Button>
+           </div>
+      </div>
 
       {/* Main Content */}
+      <div className="flex-1 overflow-hidden flex flex-col">
         {/* Settings View */}
         {viewMode === 'settings' ? (
             <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 p-8">
@@ -661,7 +767,7 @@ export function SurveyBuilder() {
                             <p className="text-xs text-gray-500 mt-1 leading-relaxed">
                                 {settingsDraft?.isPublic 
                                     ? 'Visible in marketplace and searchable by search engines.' 
-                                    : 'Hidden from marketplace and search engines. Only accessible via link.'}
+                                    : 'Hidden from marketplace. Link only. (Manual Opt-in still available for marketplace sharing)'}
                             </p>
                         </div>
 
@@ -730,42 +836,7 @@ export function SurveyBuilder() {
                 onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
               >
-                <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between shadow-sm z-10 dark:bg-gray-900 dark:border-gray-800">
-                     <div className="flex items-center gap-4">
-                          <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')}>
-                              <ArrowLeft className="h-4 w-4" />
-                          </Button>
-                          <div className="flex flex-col">
-                              <h1 className="text-sm font-bold">{title}</h1>
-                              <span className="text-[10px] text-gray-400 capitalize">{isPublished ? 'Published' : 'Draft'} • {questions.length} Questions</span>
-                          </div>
-                     </div>
-                     <div className="flex items-center gap-3">
-                          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-                              <Button variant="secondary" size="sm" onClick={() => setViewMode('builder')} className="text-xs h-7">Builder</Button>
-                              <Button variant="ghost" size="sm" onClick={() => {
-                                   if (isDirty) notifyChange();
-                                   setViewMode('settings');
-                               }} className="text-xs h-7">Settings</Button>
-                          </div>
-                         <Separator orientation="vertical" className="h-6" />
-                         <span className="flex items-center gap-1 text-xs text-gray-500">
-                                <HistoryIcon className="h-3 w-3" />
-                                {calculateEstimatedTime(questions)}m
-                         </span>
-                         <Button size="sm" variant="outline" onClick={() => openPreview()} className="h-8">
-                                <Eye className="mr-2 h-3 w-3" /> Preview
-                         </Button>
-                         <Button 
-                                size="sm" 
-                                onClick={() => setPublishSettingsOpen(true)} 
-                                className={`h-8 ${hasUnpublishedChanges ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 text-gray-500 hover:bg-gray-200"}`}
-                            >
-                                <Rocket className="mr-2 h-3 w-3" />
-                                {isPublished ? "Republish" : "Publish"}
-                         </Button>
-                     </div>
-                </div>
+
                 <div className="flex flex-1 overflow-hidden">
                   {/* Sidebar */}
                   <aside className="w-64 border-r border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 overflow-y-auto">
@@ -837,6 +908,19 @@ export function SurveyBuilder() {
                           getLogicWarning={getLogicWarning}
                         />
                       </SortableContext>
+                       <div className="mt-4 flex justify-center pb-12">
+                         <Button 
+                           variant="outline" 
+                           onClick={addPage}
+                           className="border-dashed border-2 hover:border-purple-500 hover:text-purple-600 px-8 py-6 rounded-xl flex flex-col gap-1 h-auto bg-white/50 dark:bg-gray-800/50"
+                         >
+                            <div className="flex items-center gap-2 font-bold">
+                               <Layout className="h-4 w-4" />
+                               Add New Page
+                            </div>
+                            <span className="text-[10px] font-normal opacity-60">Pages help organize long surveys into sections</span>
+                         </Button>
+                       </div>
                     </div>
                   </main>
                 </div>
@@ -859,9 +943,9 @@ export function SurveyBuilder() {
                 <Dialog open={!!deletingQuestionId} onOpenChange={(open) => !open && setDeletingQuestionId(null)}>
                     <DialogContent onInteractOutside={(e) => e.preventDefault()}>
                         <DialogHeader>
-                            <DialogTitle>Delete Question?</DialogTitle>
+                            <DialogTitle>Delete {questions.find(q => q.id === deletingQuestionId)?.type === 'section' ? 'Page' : 'Question'}?</DialogTitle>
                             <DialogDescription>
-                                Are you sure you want to delete this question? This action cannot be undone.
+                                Are you sure you want to delete this {questions.find(q => q.id === deletingQuestionId)?.type === 'section' ? 'page and all questions inside it' : 'question'}? This action cannot be undone.
                             </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
@@ -964,10 +1048,10 @@ export function SurveyBuilder() {
                                 </p>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-xs font-medium">{isPublic ? "Public" : "Private"}</span>
+                                <span className="text-xs font-medium">{isPublic ? "Public" : "Non-public"}</span>
                                 <Switch 
                                     checked={isPublic}
-                                    disabled={publishedCount > 0 && !isPublic} // Cannot switch to Public if already published as Private
+                                    disabled={publishedCount > 0 && !isPublic} // Cannot switch to Public if already published as Non-public
                                     onCheckedChange={(checked) => {
                                         setIsPublic(checked);
                                         // Auto-force dataset logic
@@ -990,12 +1074,12 @@ export function SurveyBuilder() {
                                 <p className="text-xs text-gray-500">
                                     {isPublic 
                                         ? "Public surveys must contribute to the dataset marketplace." 
-                                        : "Private surveys cannot contribute to the dataset marketplace."}
+                                        : "Non-public surveys can opt-in to contribute to the dataset marketplace."}
                                 </p>
                             </div>
                             <Switch 
                                 checked={includeInDatasets}
-                                disabled={true} // Always disabled as per requirement (auto-force)
+                                disabled={isPublic} // Only disabled (forced true) if Public
                                 onCheckedChange={setIncludeInDatasets}
                             />
                         </div>
@@ -1036,6 +1120,7 @@ export function SurveyBuilder() {
             </Dialog>
                   </DndContext>
         )}
+      </div>
     </div>
   );
 }

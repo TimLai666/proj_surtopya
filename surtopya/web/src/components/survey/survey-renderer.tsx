@@ -19,6 +19,7 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowRight, ArrowLeft, Eye } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Survey, Question, SurveyTheme } from "@/types/survey";
+import { getContrastColor } from "@/lib/utils";
 
 interface SurveyRendererProps {
   survey: Survey;
@@ -38,6 +39,9 @@ export function SurveyRenderer({ survey, theme, isPreview = false, onComplete }:
     backgroundColor: '#f9fafb',
     fontFamily: 'inter',
   };
+
+  const textColorClass = getContrastColor(activeTheme.backgroundColor) === 'white' ? 'text-white' : 'text-gray-900';
+  const mutedTextColorClass = getContrastColor(activeTheme.backgroundColor) === 'white' ? 'text-gray-300' : 'text-gray-500';
 
   // Group questions into pages
   const pages = survey.questions.reduce((acc, question) => {
@@ -147,29 +151,29 @@ export function SurveyRenderer({ survey, theme, isPreview = false, onComplete }:
 
         {/* Survey Title */}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{survey.title}</h1>
+          <h1 className={`text-3xl font-bold ${textColorClass}`}>{survey.title}</h1>
           {survey.description && (
-            <p className="text-gray-500 dark:text-gray-400">{survey.description}</p>
+            <p className={mutedTextColorClass}>{survey.description}</p>
           )}
         </div>
 
         {/* Progress Header */}
         <div className="space-y-2">
-          <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-400">
+          <div className={`flex justify-between text-sm font-medium ${mutedTextColorClass}`}>
             <span>Page {currentStep + 1} of {totalSteps}</span>
             <span>{Math.round(progress)}% completed</span>
           </div>
           <Progress 
             value={progress} 
-            className="h-2 bg-gray-200 dark:bg-gray-800" 
-            style={{ '--progress-color': activeTheme.primaryColor } as any}
+            className="h-2 bg-gray-200/20 dark:bg-gray-800/20" 
+            indicatorStyle={{ backgroundColor: activeTheme.primaryColor }}
           />
         </div>
 
         {pageHeader && (
           <div className="mb-6 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{pageHeader.title}</h2>
-            {pageHeader.description && <p className="text-gray-500 mt-2">{pageHeader.description}</p>}
+            <h2 className={`text-2xl font-bold ${textColorClass}`}>{pageHeader.title}</h2>
+            {pageHeader.description && <p className={`${mutedTextColorClass} mt-2`}>{pageHeader.description}</p>}
           </div>
         )}
 

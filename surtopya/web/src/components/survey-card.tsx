@@ -20,6 +20,7 @@ interface SurveyCardProps {
   isHot?: boolean;
   variant?: 'explore' | 'dashboard'; // explore = go to intro page, dashboard = go to management page
   visibility?: 'public' | 'non-public';
+  hasUnpublishedChanges?: boolean;
 }
 
 export function SurveyCard({
@@ -35,6 +36,7 @@ export function SurveyCard({
   isHot,
   variant = 'explore',
   visibility = 'public',
+  hasUnpublishedChanges = false,
 }: SurveyCardProps) {
   // Determine link based on variant
   const href = variant === 'dashboard' 
@@ -63,6 +65,11 @@ export function SurveyCard({
                     {tag}
                   </Badge>
                 ))}
+                {hasUnpublishedChanges && (
+                  <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200 text-[10px] h-5 px-1.5 font-bold">
+                    NEW CHANGES
+                  </Badge>
+                )}
               </div>
               <h3 className="line-clamp-2 text-lg font-bold leading-tight text-gray-900 transition-colors group-hover:text-purple-600 dark:text-gray-100 dark:group-hover:text-purple-400">
                 {title}
@@ -105,7 +112,7 @@ export function SurveyCard({
                       ) : (
                           <>
                               <Lock className="h-3.5 w-3.5 text-amber-500" />
-                              <span className="text-amber-600 dark:text-amber-400">Private</span>
+                              <span className="text-amber-600 dark:text-amber-400">Non-public</span>
                           </>
                       )}
                   </div>

@@ -24,7 +24,8 @@ import {
   MessageSquare,
   TrendingUp,
   Calendar,
-  Lock
+  Lock,
+  Send
 } from "lucide-react";
 
 // Mock Survey Data
@@ -207,7 +208,7 @@ export default function SurveyManagementPage() {
                 </Button>
               ) : (
                 <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => handleTogglePublish(true)}>
-                  <Share2 className="mr-2 h-4 w-4" />
+                  <Send className="mr-2 h-4 w-4" />
                   Publish
                 </Button>
               )}

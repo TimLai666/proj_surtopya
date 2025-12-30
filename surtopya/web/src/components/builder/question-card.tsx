@@ -41,7 +41,7 @@ export function QuestionCard({ question, isFirstSection, onUpdate, onDelete, onD
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0 : 1,
   };
 
   const handleOptionChange = (index: number, value: string) => {
@@ -202,10 +202,15 @@ export function QuestionCard({ question, isFirstSection, onUpdate, onDelete, onD
                 <span>Max Stars</span>
                 <Input 
                     type="number" 
-                    min={3}
+                    min={1}
                     max={10}
                     value={question.maxRating || 5} 
-                    onChange={(e) => onUpdate(question.id, { maxRating: parseInt(e.target.value) || 5 })}
+                    onChange={(e) => {
+                        let val = parseInt(e.target.value) || 1;
+                        if (val > 10) val = 10;
+                        if (val < 1) val = 1;
+                        onUpdate(question.id, { maxRating: val });
+                    }}
                     className="w-16 h-6 text-xs"
                 />
                </div>

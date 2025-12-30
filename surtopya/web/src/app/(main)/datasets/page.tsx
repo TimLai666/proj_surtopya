@@ -16,26 +16,41 @@ function DatasetsContent() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
+  // Category mapping for URL parameters
+  const CATEGORY_MAP: Record<string, string> = {
+    "所有類別": "all",
+    "市場調查": "market-research",
+    "社會科學": "social-science",
+    "消費品": "consumer-goods",
+    "科技": "technology",
+    "醫療保健": "healthcare",
+    "金融": "finance",
+  };
+
+  const REVERSE_CATEGORY_MAP: Record<string, string> = Object.fromEntries(
+    Object.entries(CATEGORY_MAP).map(([zh, en]) => [en, zh])
+  );
+
   // Initialize state from URL params
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
-  const [activeCategory, setActiveCategory] = useState(searchParams.get("category") || "所有類別");
+  const initialCategoryEn = searchParams.get("category") || "all";
+  const [activeCategory, setActiveCategory] = useState(REVERSE_CATEGORY_MAP[initialCategoryEn] || "所有類別");
   const [sortBy, setSortBy] = useState<"newest" | "downloads" | "samples">((searchParams.get("sort") as any) || "newest");
   const [visibleCount, setVisibleCount] = useState(6);
 
   // Sync state to URL
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams();
+    if (searchTerm) params.set("q", searchTerm);
     
-    // Build new params
-    const newParams = new URLSearchParams();
-    if (searchTerm) newParams.set("q", searchTerm);
-    if (activeCategory !== "所有類別") newParams.set("category", activeCategory);
-    if (sortBy !== "newest") newParams.set("sort", sortBy);
+    const categoryEn = CATEGORY_MAP[activeCategory];
+    if (categoryEn && categoryEn !== "all") params.set("category", categoryEn);
     
-    const newQuery = newParams.toString();
+    if (sortBy !== "newest") params.set("sort", sortBy);
+    
+    const newQuery = params.toString();
     const currentQuery = searchParams.toString();
     
-    // Only update if the query has actually changed
     if (newQuery !== currentQuery) {
       const url = newQuery ? `${pathname}?${newQuery}` : pathname;
       router.replace(url, { scroll: false });
@@ -110,7 +125,7 @@ function DatasetsContent() {
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-4">類別</h3>
               <div className="space-y-2">
-                {["所有類別", "市場調查", "社會科學", "消費品", "科技", "醫療保健", "金融"].map((cat) => (
+                {Object.keys(CATEGORY_MAP).map((cat) => (
                   <Button 
                     key={cat} 
                     variant={activeCategory === cat ? "secondary" : "ghost"} 
