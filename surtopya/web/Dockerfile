@@ -1,5 +1,5 @@
 # Build stage
-FROM node:25-alpine AS builder
+FROM oven/bun:1.3.5-alpine AS builder
 
 WORKDIR /app
 
@@ -7,16 +7,16 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN bun install
 
 # Copy source code
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN bun run build
 
 # Production stage
-FROM node:20-alpine AS runner
+FROM oven/bun:1.3.5-alpine AS runner
 
 WORKDIR /app
 
@@ -30,4 +30,4 @@ COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["bun", "start"]
