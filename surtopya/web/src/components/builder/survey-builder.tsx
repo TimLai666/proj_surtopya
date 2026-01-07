@@ -570,13 +570,21 @@ export function SurveyBuilder() {
                     >
                         Builder
                     </Button>
-                    <Button 
-                        variant={viewMode === 'settings' ? 'secondary' : 'ghost'} 
-                        size="sm" 
+                    <Button
+                        variant={viewMode === 'settings' ? 'secondary' : 'ghost'}
+                        size="sm"
                         onClick={() => {
                             if (isDirty) notifyChange();
+                            // Initialize settings draft with current values
+                            setSettingsDraft({
+                                title,
+                                description,
+                                pointsReward,
+                                isPublic,
+                                includeInDatasets,
+                            });
                             setViewMode('settings');
-                        }} 
+                        }}
                         className={`text-xs h-7 ${viewMode === 'settings' ? 'bg-white shadow-sm' : ''}`}
                     >
                         Settings
