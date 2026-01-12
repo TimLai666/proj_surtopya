@@ -1,0 +1,258 @@
+time="2026-01-12T16:43:13+08:00" level=warning msg="C:\\Users\\tingzhen\\Documents\\GitHub\\proj_surtopya\\surtopya\\docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+Compose now can delegate build to bake for better performances
+Just set COMPOSE_BAKE=true
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [web internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.75kB done
+#1 DONE 0.0s
+
+#2 [web internal] load metadata for docker.io/library/node:20-bullseye-slim
+#2 DONE 1.7s
+
+#3 [web internal] load metadata for docker.io/library/node:20-bullseye
+#3 DONE 1.8s
+
+#4 [web internal] load .dockerignore
+#4 transferring context: 206B done
+#4 DONE 0.0s
+
+#5 [web internal] load build context
+#5 DONE 0.0s
+
+#6 [web runner 1/6] FROM docker.io/library/node:20-bullseye-slim@sha256:0b83f89a51084d9f02238def98d7aba39302b1ac2142817501c7dca2fcaac96c
+#6 resolve docker.io/library/node:20-bullseye-slim@sha256:0b83f89a51084d9f02238def98d7aba39302b1ac2142817501c7dca2fcaac96c 0.0s done
+#6 DONE 0.0s
+
+#7 [web runner 2/6] WORKDIR /app
+#7 CACHED
+
+#8 [web builder  1/15] FROM docker.io/library/node:20-bullseye@sha256:3ca3960b37879fd91a2863e757e79d2cb1bef159cbc4b44097ac3b2653e6d881
+#8 resolve docker.io/library/node:20-bullseye@sha256:3ca3960b37879fd91a2863e757e79d2cb1bef159cbc4b44097ac3b2653e6d881 0.0s done
+#8 DONE 0.0s
+
+#9 [web builder  2/15] WORKDIR /app
+#9 CACHED
+
+#5 [web internal] load build context
+#5 transferring context: 6.97kB 0.0s done
+#5 DONE 0.0s
+
+#10 [web builder  3/15] RUN apt-get update &&     apt-get install -y --no-install-recommends python3 build-essential ca-certificates curl &&     rm -rf /var/lib/apt/lists/*
+#10 0.546 Get:1 http://deb.debian.org/debian bullseye InRelease [75.1 kB]
+#10 0.678 Get:2 http://deb.debian.org/debian-security bullseye-security InRelease [27.2 kB]
+#10 0.748 Get:3 http://deb.debian.org/debian bullseye-updates InRelease [44.0 kB]
+#10 0.826 Get:4 http://deb.debian.org/debian bullseye/main amd64 Packages [8066 kB]
+#10 5.310 Get:5 http://deb.debian.org/debian-security bullseye-security/main amd64 Packages [439 kB]
+#10 5.551 Get:6 http://deb.debian.org/debian bullseye-updates/main amd64 Packages [18.8 kB]
+#10 6.200 Fetched 8670 kB in 6s (1459 kB/s)
+#10 6.200 Reading package lists...
+#10 6.590 Reading package lists...
+#10 6.891 Building dependency tree...
+#10 6.993 Reading state information...
+#10 7.076 ca-certificates is already the newest version (20210119).
+#10 7.076 python3 is already the newest version (3.9.2-3).
+#10 7.076 python3 set to manually installed.
+#10 7.076 Suggested packages:
+#10 7.076   libcurl4-doc libidn11-dev libldap2-dev librtmp-dev libssh2-1-dev
+#10 7.094 The following NEW packages will be installed:
+#10 7.095   build-essential
+#10 7.095 The following packages will be upgraded:
+#10 7.095   curl libcurl4 libcurl4-openssl-dev
+#10 7.245 3 upgraded, 1 newly installed, 0 to remove and 14 not upgraded.
+#10 7.245 Need to get 1064 kB of archives.
+#10 7.245 After this operation, 20.5 kB of additional disk space will be used.
+#10 7.245 Get:1 http://deb.debian.org/debian bullseye/main amd64 build-essential amd64 12.9 [7704 B]
+#10 7.321 Get:2 http://deb.debian.org/debian-security bullseye-security/main amd64 libcurl4-openssl-dev amd64 7.74.0-1.3+deb11u16 [438 kB]
+#10 7.773 Get:3 http://deb.debian.org/debian-security bullseye-security/main amd64 curl amd64 7.74.0-1.3+deb11u16 [272 kB]
+#10 7.836 Get:4 http://deb.debian.org/debian-security bullseye-security/main amd64 libcurl4 amd64 7.74.0-1.3+deb11u16 [347 kB]
+#10 8.404 debconf: delaying package configuration, since apt-utils is not installed
+#10 8.446 Fetched 1064 kB in 1s (949 kB/s)
+#10 8.472 Selecting previously unselected package build-essential.
+#10 8.472 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 22801 files and directories currently installed.)
+#10 8.578 Preparing to unpack .../build-essential_12.9_amd64.deb ...
+#10 8.584 Unpacking build-essential (12.9) ...
+#10 8.627 Preparing to unpack .../libcurl4-openssl-dev_7.74.0-1.3+deb11u16_amd64.deb ...
+#10 8.644 Unpacking libcurl4-openssl-dev:amd64 (7.74.0-1.3+deb11u16) over (7.74.0-1.3+deb11u15) ...
+#10 8.788 Preparing to unpack .../curl_7.74.0-1.3+deb11u16_amd64.deb ...
+#10 8.805 Unpacking curl (7.74.0-1.3+deb11u16) over (7.74.0-1.3+deb11u15) ...
+#10 8.892 Preparing to unpack .../libcurl4_7.74.0-1.3+deb11u16_amd64.deb ...
+#10 8.915 Unpacking libcurl4:amd64 (7.74.0-1.3+deb11u16) over (7.74.0-1.3+deb11u15) ...
+#10 9.005 Setting up build-essential (12.9) ...
+#10 9.021 Setting up libcurl4:amd64 (7.74.0-1.3+deb11u16) ...
+#10 9.036 Setting up curl (7.74.0-1.3+deb11u16) ...
+#10 9.052 Setting up libcurl4-openssl-dev:amd64 (7.74.0-1.3+deb11u16) ...
+#10 9.067 Processing triggers for libc-bin (2.31-13+deb11u13) ...
+#10 DONE 9.3s
+
+#11 [web builder  4/15] COPY package*.json ./
+#11 DONE 0.1s
+
+#12 [web builder  5/15] RUN npm ci
+#12 21.87 npm warn deprecated whatwg-encoding@2.0.0: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+#12 23.86 npm warn deprecated domexception@4.0.0: Use your platform's native DOMException instead
+#12 24.35 npm warn deprecated abab@2.0.6: Use your platform's native atob() and btoa() methods instead
+#12 113.5 
+#12 113.5 added 652 packages, and audited 653 packages in 2m
+#12 113.5 
+#12 113.5 182 packages are looking for funding
+#12 113.5   run `npm fund` for details
+#12 113.5 
+#12 113.5 4 moderate severity vulnerabilities
+#12 113.5 
+#12 113.5 To address all issues (including breaking changes), run:
+#12 113.5   npm audit fix --force
+#12 113.5 
+#12 113.5 Run `npm audit` for details.
+#12 113.5 npm notice
+#12 113.5 npm notice New major version of npm available! 10.8.2 -> 11.7.0
+#12 113.5 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.7.0
+#12 113.5 npm notice To update run: npm install -g npm@11.7.0
+#12 113.5 npm notice
+#12 DONE 113.6s
+
+#13 [web builder  6/15] RUN npm rebuild lightningcss --update-binary
+#13 1.188 rebuilt dependencies successfully
+#13 DONE 1.2s
+
+#14 [web builder  7/15] RUN npm rebuild @swc/core --update-binary || true
+#14 1.198 rebuilt dependencies successfully
+#14 DONE 1.2s
+
+#15 [web builder  8/15] RUN ls -la node_modules/lightningcss || true
+#15 0.406 total 56
+#15 0.406 drwxr-xr-x   3 root root  4096 Jan 12 08:43 .
+#15 0.406 drwxr-xr-x 438 root root 20480 Jan 12 08:45 ..
+#15 0.406 -rw-r--r--   1 root root 15648 Jan 12 08:43 LICENSE
+#15 0.406 -rw-r--r--   1 root root  6058 Jan 12 08:43 README.md
+#15 0.406 drwxr-xr-x   2 root root  4096 Jan 12 08:43 node
+#15 0.406 -rw-r--r--   1 root root  3835 Jan 12 08:43 package.json
+#15 DONE 0.4s
+
+#16 [web builder  9/15] RUN ls -la node_modules/lightningcss/node || true
+#16 0.443 total 500
+#16 0.443 drwxr-xr-x 2 root root   4096 Jan 12 08:43 .
+#16 0.443 drwxr-xr-x 3 root root   4096 Jan 12 08:43 ..
+#16 0.443 -rw-r--r-- 1 root root 208767 Jan 12 08:43 ast.d.ts
+#16 0.443 -rw-r--r-- 1 root root 213013 Jan 12 08:43 ast.js.flow
+#16 0.443 -rw-r--r-- 1 root root    929 Jan 12 08:43 browserslistToTargets.js
+#16 0.443 -rw-r--r-- 1 root root  11074 Jan 12 08:43 composeVisitors.js
+#16 0.443 -rw-r--r-- 1 root root    666 Jan 12 08:43 flags.js
+#16 0.443 -rw-r--r-- 1 root root  18091 Jan 12 08:43 index.d.ts
+#16 0.443 -rw-r--r-- 1 root root    842 Jan 12 08:43 index.js
+#16 0.443 -rw-r--r-- 1 root root  20269 Jan 12 08:43 index.js.flow
+#16 0.443 -rw-r--r-- 1 root root    276 Jan 12 08:43 index.mjs
+#16 0.443 -rw-r--r-- 1 root root    867 Jan 12 08:43 targets.d.ts
+#16 0.443 -rw-r--r-- 1 root root    819 Jan 12 08:43 targets.js.flow
+#16 DONE 0.5s
+
+#17 [web builder 10/15] RUN find node_modules/lightningcss -type f -name '*.node' -exec ls -la {} ; || true
+#17 DONE 0.5s
+
+#18 [web builder 11/15] RUN sed -n '1,240p' node_modules/lightningcss/node/index.js || true
+#18 0.480 let parts = [process.platform, process.arch];
+#18 0.480 if (process.platform === 'linux') {
+#18 0.480   const { MUSL, familySync } = require('detect-libc');
+#18 0.480   const family = familySync();
+#18 0.480   if (family === MUSL) {
+#18 0.480     parts.push('musl');
+#18 0.480   } else if (process.arch === 'arm') {
+#18 0.480     parts.push('gnueabihf');
+#18 0.480   } else {
+#18 0.480     parts.push('gnu');
+#18 0.480   }
+#18 0.480 } else if (process.platform === 'win32') {
+#18 0.480   parts.push('msvc');
+#18 0.480 }
+#18 0.480 
+#18 0.480 if (process.env.CSS_TRANSFORMER_WASM) {
+#18 0.480   module.exports = require(`../pkg`);
+#18 0.480 } else {
+#18 0.480   try {
+#18 0.480     module.exports = require(`lightningcss-${parts.join('-')}`);
+#18 0.480   } catch (err) {
+#18 0.480     module.exports = require(`../lightningcss.${parts.join('-')}.node`);
+#18 0.480   }
+#18 0.480 }
+#18 0.480 
+#18 0.480 module.exports.browserslistToTargets = require('./browserslistToTargets');
+#18 0.480 module.exports.composeVisitors = require('./composeVisitors');
+#18 0.480 module.exports.Features = require('./flags').Features;
+#18 DONE 0.5s
+
+#19 [web builder 12/15] RUN ls -la node_modules/@swc || true
+#19 0.474 total 40
+#19 0.474 drwxr-xr-x   6 root root  4096 Jan 12 08:45 .
+#19 0.474 drwxr-xr-x 438 root root 20480 Jan 12 08:45 ..
+#19 0.474 drwxr-xr-x   2 root root  4096 Jan 12 08:43 core-linux-x64-gnu
+#19 0.474 drwxr-xr-x   2 root root  4096 Jan 12 08:43 core-linux-x64-musl
+#19 0.474 drwxr-xr-x   2 root root  4096 Jan 12 08:44 counter
+#19 0.474 drwxr-xr-x   2 root root  4096 Jan 12 08:44 types
+#19 DONE 0.5s
+
+#20 [web builder 13/15] RUN node -e "console.log('platform', process.platform, 'arch', process.arch, 'node', process.versions.node)" || true
+#20 0.436 platform linux arch x64 node 20.19.6
+#20 DONE 0.5s
+
+#21 [web builder 14/15] COPY . .
+#21 DONE 0.1s
+
+#22 [web builder 15/15] RUN npm run build
+#22 0.477 
+#22 0.477 > surtopya@0.1.0 build
+#22 0.477 > next build
+#22 0.477 
+#22 1.070 Attention: Next.js now collects completely anonymous telemetry regarding usage.
+#22 1.070 This information is used to shape Next.js' roadmap and prioritize features.
+#22 1.070 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+#22 1.070 https://nextjs.org/telemetry
+#22 1.070 
+#22 1.083 ▲ Next.js 16.1.1 (Turbopack)
+#22 1.083 
+#22 1.142   Creating an optimized production build ...
+#22 3.779 
+#22 3.779 > Build error occurred
+#22 3.782 Error: Turbopack build failed with 1 errors:
+#22 3.782 ./src/app/globals.css
+#22 3.782 Error evaluating Node.js code
+#22 3.782 Error: Cannot find module '../pkg'
+#22 3.782 Require stack:
+#22 3.782 - /app/node_modules/lightningcss/node/index.js
+#22 3.782 - /app/node_modules/@tailwindcss/node/dist/index.js
+#22 3.782 - /app/node_modules/@tailwindcss/postcss/dist/index.js
+#22 3.782 - /app/.next/build/chunks/[root-of-the-server]__51225daf._.js
+#22 3.782 - /app/.next/build/chunks/[turbopack]_runtime.js
+#22 3.782 - /app/.next/build/postcss.js
+#22 3.782     [at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)]
+#22 3.782     [at Module._load (node:internal/modules/cjs/loader:1038:27)]
+#22 3.782     [at Module.require (node:internal/modules/cjs/loader:1289:19)]
+#22 3.782     [at require (node:internal/modules/helpers:182:18)]
+#22 3.782     [at Object.<anonymous> (/app/node_modules/lightningcss/node/index.js:17:20)]
+#22 3.782     [at Module._compile (node:internal/modules/cjs/loader:1521:14)]
+#22 3.782     [at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)]
+#22 3.782     [at Module.load (node:internal/modules/cjs/loader:1266:32)]
+#22 3.782     [at Module._load (node:internal/modules/cjs/loader:1091:12)]
+#22 3.782     [at Module.require (node:internal/modules/cjs/loader:1289:19)]
+#22 3.782 
+#22 3.782 Import trace:
+#22 3.782   Client Component Browser:
+#22 3.782     ./src/app/globals.css [Client Component Browser]
+#22 3.782     ./src/app/layout.tsx [Server Component]
+#22 3.782 
+#22 3.782 
+#22 3.782     at ignore-listed frames
+#22 ERROR: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+------
+ > [web builder 15/15] RUN npm run build:
+3.782     [at Module._load (node:internal/modules/cjs/loader:1091:12)]
+3.782     [at Module.require (node:internal/modules/cjs/loader:1289:19)]
+3.782 
+3.782 Import trace:
+3.782   Client Component Browser:
+3.782     ./src/app/globals.css [Client Component Browser]
+3.782     ./src/app/layout.tsx [Server Component]
+3.782 
+3.782 
+3.782     at ignore-listed frames
+------
+failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
