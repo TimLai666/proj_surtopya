@@ -37,15 +37,15 @@ type CreateSurveyRequest struct {
 
 // QuestionRequest represents a question in the request
 type QuestionRequest struct {
-	ID          string              `json:"id"`
-	Type        string              `json:"type"`
-	Title       string              `json:"title"`
-	Description string              `json:"description"`
-	Options     []string            `json:"options"`
-	Required    bool                `json:"required"`
-	Points      int                 `json:"points"`
-	MaxRating   int                 `json:"maxRating"`
-	Logic       []models.LogicRule  `json:"logic"`
+	ID          string             `json:"id"`
+	Type        string             `json:"type"`
+	Title       string             `json:"title"`
+	Description string             `json:"description"`
+	Options     []string           `json:"options"`
+	Required    bool               `json:"required"`
+	Points      int                `json:"points"`
+	MaxRating   int                `json:"maxRating"`
+	Logic       []models.LogicRule `json:"logic"`
 }
 
 // CreateSurvey handles POST /api/v1/surveys
@@ -193,11 +193,11 @@ func (h *SurveyHandler) GetPublicSurveys(c *gin.Context) {
 
 // UpdateSurveyRequest represents the request body for updating a survey
 type UpdateSurveyRequest struct {
-	Title             *string             `json:"title"`
-	Description       *string             `json:"description"`
-	Theme             *models.SurveyTheme `json:"theme"`
-	PointsReward      *int                `json:"pointsReward"`
-	Questions         []QuestionRequest   `json:"questions"`
+	Title        *string             `json:"title"`
+	Description  *string             `json:"description"`
+	Theme        *models.SurveyTheme `json:"theme"`
+	PointsReward *int                `json:"pointsReward"`
+	Questions    []QuestionRequest   `json:"questions"`
 }
 
 // UpdateSurvey handles PUT /api/v1/surveys/:id
