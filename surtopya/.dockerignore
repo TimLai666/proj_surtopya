@@ -1,5 +1,0 @@
-*.md
-*.txt
-.next/
-node_modules/
-.env.example
